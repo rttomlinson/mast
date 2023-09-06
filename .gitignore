@@ -1,0 +1,13 @@
+*.swp
+.DS_Store
+
+mast/blib
+mast/pm_to_blib
+mast/MYMETA.*
+mast/Manifest.bak
+mast/Makefile
+mast/Makefile.old
+*.tar.gz
+
+mast/bin/scratch_pad
+.vscode/

@@ -1,0 +1,59 @@
+#!/usr/bin/perl
+
+$| = 1;
+use v5.030;
+use strictures 2;
+no warnings 'uninitialized';
+
+use Getopt::Long;
+use JSON::PP;
+use Mast::Service::Spec;
+use Mast::Deploy::Service;
+
+use Mast::Deploy::Step;
+
+my ($environment, $service_spec_json, $task_definition_arn, $overrides_json, $poll_interval);
+
+GetOptions(
+  'environment=s' => \$environment,
+  'service-spec-json=s' => \$service_spec_json,
+  'task-definition-arn=s' => \$task_definition_arn,
+  'service-overrides-json=s' => \$overrides_json,
+  'poll-interval=i' => \$poll_interval,
+)
+  or die "Error in command line arguments\n";
+
+$poll_interval //= 10;
+
+say "Environment: $environment";
+say "Service spec: $service_spec_json";
+say "Task Definition arn: $task_definition_arn";
+say "ECS service overrides JSON: $overrides_json";
+say "Poll interval (seconds): $poll_interval";
+
+# Overrides are optional
+my $overrides = decode_json($overrides_json // '{}');
+
+# It is possible to include the new task definition arn in the service overrides,
+# we don't want this to happen because updating task definition is a specific use case,
+# see below.
+die "Use --task-definition-arn argument to update ECS service with new task definition ARN\n"
+  if exists $overrides->{'task-definition-arn'} or exists $overrides->{taskDefinitionArn};
+
+# There are three slightly different use cases we support:
+# a) if changes include desiredCount we need to wait for the tasks to start or stop
+# b) if task definition ARN is updated, we need to wait for deployment to complete
+# c) for changes that include neither desiredCount nor new task definition ARN, we need
+#    to wait for steady state only.
+# Since the code paths for updating task definition ARN and other updates are different,
+# we allow one or other at a time.
+die "Updating both new task definition ARN and service overrides is not supported\n"
+  if $task_definition_arn and %$overrides;
+
+Mast::Deploy::Step::update_ecs_service(
+  environment => $environment,
+  service_spec_json => $service_spec_json,
+  poll_interval => $poll_interval,
+  task_definition_arn => $task_definition_arn,
+  service_overrides => $overrides,
+);

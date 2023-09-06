@@ -1,0 +1,24 @@
+#!/usr/bin/perl
+
+$| = 1;
+use v5.030;
+use warnings;
+
+use Getopt::Long;
+use Mast::Deploy::Step;
+
+my ($environment, $service_spec_json);
+
+GetOptions(
+  'environment=s' => \$environment,
+  'service-spec-json=s' => \$service_spec_json,
+)
+  or die "Error in command line arguments\n";
+say "This is deprecated. Use delete_elb_target_groups";
+say "Environment: $environment";
+say "Service spec: $service_spec_json";
+
+delete_elb_target_groups(
+  environment => $environment,
+  service_spec_json => $service_spec_json,
+);

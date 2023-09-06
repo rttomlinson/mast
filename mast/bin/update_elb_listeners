@@ -1,0 +1,26 @@
+#!/usr/bin/perl
+
+$| = 1;
+use v5.030;
+use warnings;
+
+use Getopt::Long;
+use Mast::Deploy::Step;
+
+my ($environment, $service_spec_json);
+
+GetOptions(
+  'environment=s' => \$environment,
+  'service-spec-json=s' => \$service_spec_json,
+)
+  or die "Error in command line arguments\n";
+
+say "Environment: $environment";
+say "Service spec: $service_spec_json";
+
+update_elb_listeners(
+  environment => $environment,
+  service_spec_json => $service_spec_json
+);
+
+say "Successfully updated listener.";

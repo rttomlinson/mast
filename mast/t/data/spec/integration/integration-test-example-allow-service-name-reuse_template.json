@@ -1,0 +1,400 @@
+{
+    "version": "0",
+    "aws": {
+        "region": "us-east-1"
+    },
+    "elb": {
+        "loadBalancer": {
+            "type": "application",
+            "name": {
+                "prestaging": "${APPLICATION_ELB_NAME}",
+                "staging": "${APPLICATION_ELB_NAME}",
+                "production": "${APPLICATION_ELB_NAME}"
+            },
+            "securityGroups": {
+                "prestaging": "${APPLICATION_ELB_SECURITY_GROUP_NAME}",
+                "staging": "${APPLICATION_ELB_SECURITY_GROUP_NAME}",
+                "production": "${APPLICATION_ELB_SECURITY_GROUP_NAME}"
+            },
+            "listener": {
+                "protocol": "HTTPS",
+                "port": 443,
+                "rules": {
+                    "standby": [
+                        {
+                            "placement": "end",
+                            "conditions": {
+                                "prestaging": [
+                                    {
+                                        "Field": "host-header",
+                                        "Values": [
+                                            "standby.${SERVICE_HOSTNAME}"
+                                        ]
+                                    }
+                                ],
+                                "staging": [
+                                    {
+                                        "Field": "host-header",
+                                        "Values": [
+                                            "standby.${SERVICE_HOSTNAME}"
+                                        ]
+                                    }
+                                ],
+                                "production": [
+                                    {
+                                        "Field": "host-header",
+                                        "Values": [
+                                            "standby.${SERVICE_HOSTNAME}"
+                                        ]
+                                    }
+                                ]
+                            },
+                            "action": {
+                                "type": "forward",
+                                "targetGroupName": {
+                                    "prestaging": "clr-exbb-pres-${BUILD_VERSION}",
+                                    "staging": "clr-exbb-stag-${BUILD_VERSION}",
+                                    "production": "clr-exbb-prod-${BUILD_VERSION}"
+                                }
+                            }
+                        }
+                    ],
+                    "active": [
+                        {
+                            "placement": "end",
+                            "conditions": {
+                                "prestaging": [
+                                    {
+                                        "Field": "host-header",
+                                        "Values": [
+                                            "${SERVICE_HOSTNAME}"
+                                        ]
+                                    }
+                                ],
+                                "staging": [
+                                    {
+                                        "Field": "host-header",
+                                        "Values": [
+                                            "${SERVICE_HOSTNAME}"
+                                        ]
+                                    }
+                                ],
+                                "production": [
+                                    {
+                                        "Field": "host-header",
+                                        "Values": [
+                                            "${SERVICE_HOSTNAME}"
+                                        ]
+                                    }
+                                ]
+                            },
+                            "action": {
+                                "type": "forward",
+                                "targetGroupName": {
+                                    "prestaging": "clr-exbb-pres-${BUILD_VERSION}",
+                                    "staging": "clr-exbb-stag-${BUILD_VERSION}",
+                                    "production": "clr-exbb-prod-${BUILD_VERSION}"
+                                }
+                            }
+                        }
+                    ],
+                    "branch": [
+                        {
+                            "placement": "end",
+                            "conditions": {
+                                "prestaging": [
+                                    {
+                                        "Field": "host-header",
+                                        "Values": [
+                                            "${BUILD_VERSION}.${SERVICE_HOSTNAME}"
+                                        ]
+                                    }
+                                ],
+                                "staging": [
+                                    {
+                                        "Field": "host-header",
+                                        "Values": [
+                                            "${BUILD_VERSION}.${SERVICE_HOSTNAME}"
+                                        ]
+                                    }
+                                ],
+                                "production": [
+                                    {
+                                        "Field": "host-header",
+                                        "Values": [
+                                            "${BUILD_VERSION}.${SERVICE_HOSTNAME}"
+                                        ]
+                                    }
+                                ]
+                            },
+                            "action": {
+                                "type": "forward",
+                                "targetGroupName": {
+                                    "prestaging": "clr-exbb-pres-${BUILD_VERSION}",
+                                    "staging": "clr-exbb-stag-${BUILD_VERSION}",
+                                    "production": "clr-exbb-prod-${BUILD_VERSION}"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "targetGroups": [
+            {
+                "name": {
+                    "prestaging": "clr-exbb-pres-${BUILD_VERSION}",
+                    "staging": "clr-exbb-stag-${BUILD_VERSION}",
+                    "production": "clr-exbb-prod-${BUILD_VERSION}"
+                },
+                "protocol": "HTTP",
+                "port": 8080,
+                "healthCheck": {
+                    "protocol": "HTTP",
+                    "port": 8080,
+                    "path": "/",
+                    "interval": 30,
+                    "timeout": 5,
+                    "healthyThreshold": 5,
+                    "unhealthyThreshold": 2,
+                    "matcher": {
+                        "HttpCode": 200
+                    }
+                }
+            }
+        ]
+    },
+    "ecs": {
+        "service": {
+            "allowExisting": true,
+            "cluster": {
+                "prestaging": "testing-prestaging",
+                "staging": "testing-prestaging",
+                "production": "testing-prestaging"
+            },
+            "name": "clr-example-${BUILD_VERSION}",
+            "scalableTarget": {
+                "ServiceNamespace": "ecs",
+                "ResourceId": {
+                    "prestaging": "service/testing-prestaging/clr-example-${BUILD_VERSION}",
+                    "staging": "service/testing-prestaging/clr-example-${BUILD_VERSION}",
+                    "production": "service/testing-prestaging/clr-example-${BUILD_VERSION}"
+                },
+                "ScalableDimension": "ecs:service:DesiredCount",
+                "MinCapacity": 3,
+                "MaxCapacity": 50
+            },
+            "scalingPolicy": {
+                "PolicyName": "clr-example-${BUILD_VERSION}",
+                "PolicyType": "TargetTrackingScaling",
+                "ResourceId": {
+                    "prestaging": "service/testing-prestaging/clr-example-${BUILD_VERSION}",
+                    "staging": "service/testing-prestaging/clr-example-${BUILD_VERSION}",
+                    "production": "service/testing-prestaging/clr-example-${BUILD_VERSION}"
+                },
+                "ScalableDimension": "ecs:service:DesiredCount",
+                "ServiceNamespace": "ecs",
+                "TargetTrackingScalingPolicyConfiguration": {
+                    "PredefinedMetricSpecification": {
+                        "PredefinedMetricType": "ECSServiceAverageCPUUtilization"
+                    },
+                    "TargetValue": 75,
+                    "ScaleInCooldown": 60,
+                    "ScaleOutCooldown": 60
+                }
+            },
+            "launchType": "FARGATE",
+            "desiredCount": {
+                "prestaging": 1,
+                "staging": 2,
+                "production": 3
+            },
+            "healthCheckGracePeriod": 30,
+            "enableExecuteCommand": {
+                "prestaging": true,
+                "staging": true,
+                "production": false
+            },
+            "networkConfiguration": {
+                "awsvpcConfiguration": {
+                    "securityGroups": {
+                        "prestaging": [
+                            "${SERVICE_SECURITY_GROUP}"
+                        ],
+                        "staging": [
+                            "sg-svc-staging-1",
+                            "sg-svc-staging-2"
+                        ],
+                        "production": [
+                            "sg-svc-production-1",
+                            "sg-svc-production-2",
+                            "sg-svc-production-3"
+                        ]
+                    },
+                    "subnets": {
+                        "prestaging": [
+                            "${SERVICE_SUBNET}"
+                        ],
+                        "staging": [
+                            "subnet-staging-1",
+                            "subnet-staging-2"
+                        ],
+                        "production": [
+                            "subnet-production-1",
+                            "subnet-production-2",
+                            "subnet-production-3",
+                            "subnet-production-4",
+                            "subnet-production-5"
+                        ]
+                    },
+                    "assignPublicIp": "DISABLED"
+                }
+            },
+            "loadBalancers": [
+                {
+                    "loadBalancerName": {
+                        "prestaging": "example-lb-int-prestaging",
+                        "staging": "example-lb-int-prestaging",
+                        "production": "example-lb-int-prestaging"
+                    },
+                    "containerName": "clr-foo",
+                    "containerPort": 8080,
+                    "targetGroup": {
+                        "name": {
+                            "prestaging": "clr-exbb-pres-${BUILD_VERSION}",
+                            "staging": "clr-exbb-stag-${BUILD_VERSION}",
+                            "production": "clr-exbb-prod-${BUILD_VERSION}"
+                        },
+                        "allowExisting": false
+                    }
+                }
+            ]
+        },
+        "taskDefinition": {
+            "family": "test-example-foo",
+            "containerDefinitions": [
+                {
+                    "name": "clr-foo",
+                    "image": "foous.jfrog.io/foo-docker-v0-virtual/nginxdemos/nginx-hello:latest",
+                    "essential": true,
+                    "environment": {
+                        "prestaging": [
+                            {
+                                "name": "ANYSERVICE_SERVICE",
+                                "value": "somewhere.anywhere.clr.io"
+                            },
+                            {
+                                "name": "FOO",
+                                "value": "bar"
+                            }
+                        ],
+                        "staging": [
+                            {
+                                "name": "STAGE",
+                                "value": "staging"
+                            },
+                            {
+                                "name": "FOO",
+                                "value": "baz"
+                            }
+                        ],
+                        "production": [
+                            {
+                                "name": "STAGE",
+                                "value": "production"
+                            },
+                            {
+                                "name": "FOO",
+                                "value": "qux"
+                            },
+                            {
+                                "name": "PRODUCTION_ONLY",
+                                "value": true
+                            }
+                        ]
+                    },
+                    "secrets": {
+                        "prestaging": [],
+                        "staging": [
+                            {
+                                "name": "SECRET",
+                                "valueFrom": "arn:aws:secretsmanager:middle-of-nowhere-1:111111111111:secret:staging/clr-foo/config:SECRET::"
+                            },
+                            {
+                                "name": "API_KEY",
+                                "valueFrom": "arn:aws:secretsmanager:middle-of-nowhere-1:111111111111:secret:staging/clr-foo/api_keys:API_KEY::"
+                            }
+                        ],
+                        "production": [
+                            {
+                                "name": "SECRET",
+                                "valueFrom": "arn:aws:secretsmanager:middle-of-nowhere-1:111111111111:secret:production/clr-foo/config:SECRET::"
+                            },
+                            {
+                                "name": "API_KEY",
+                                "valueFrom": "arn:aws:secretsmanager:middle-of-nowhere-1:111111111111:secret:production/clr-foo/api_keys:API_KEY::"
+                            }
+                        ]
+                    },
+                    "portMappings": [
+                        {
+                            "protocol": "tcp",
+                            "containerPort": 8080
+                        }
+                    ],
+                    "privileged": false,
+                    "readonlyRootFilesystem": false
+                }
+            ],
+            "executionRoleArn": {
+                "prestaging": "${ECS_TASK_EXECUTION_ROLE}",
+                "staging": "${ECS_TASK_EXECUTION_ROLE}",
+                "production": "${ECS_TASK_EXECUTION_ROLE}"
+            },
+            "taskRoleArn": {
+                "prestaging": "${ECS_TASK_ROLE}",
+                "staging": "${ECS_TASK_ROLE}",
+                "production": "${ECS_TASK_ROLE}"
+            },
+            "requiresCompatibilities": [
+                "FARGATE"
+            ],
+            "networkMode": "awsvpc",
+            "memory": {
+                "prestaging": "512mb",
+                "staging": "1gb",
+                "production": "2gb"
+            },
+            "cpu": {
+                "prestaging": "0.25 vCPU",
+                "staging": "0.5 vCPU",
+                "production": "1 vCPU"
+            }
+        }
+    },
+    "verification": {
+        "request": {
+            "method": "GET",
+            "url": {
+                "prestaging": "https://internal-cluster-lb-int-prestaging.us-east-1.elb.amazonaws.com/example",
+                "staging": "https://internal-cluster-lb-int-staging.us-east-1.elb.amazonaws.com/example",
+                "production": "https://internal-cluster-lb-int-production.us-east-1.elb.amazonaws.com/example"
+            },
+            "headers": {
+                "prestaging": [
+                    "host: standby.foo.prestaging.foo.io"
+                ],
+                "staging": [
+                    "host: standby.foo.staging.foo.io"
+                ],
+                "production": [
+                    "host: standby.foo.foo.io"
+                ]
+            }
+        },
+        "response": {
+            "status": 200,
+            "body": "{}"
+        }
+    }
+}

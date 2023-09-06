@@ -1,0 +1,428 @@
+# Service specification for baz.
+
+# This document contains most if not all of the parameters we need to successfully deploy
+# the service. Most of the top level objects like `elb` and `ecs` are modeled after
+# the corresponding AWS infrastructure concepts and relevant API calls. The YAML format
+# was chosen for better readability and documentability; to meet transport limitations and
+# other factors we will be serializing this document into JSON form at the build time.
+# Correspondingly, only the JSON compatible subset of YAML features is supported.
+#
+# We do additional normalization on this data structure to allow for different parameters
+# per environment at deployment time. Deployment environment name and service spec are two
+# inputs, and the result is a data structure with values corresponding to the environment.
+#
+# The service spec document is traversed recursively and each value in it is resolved:
+# it can be either an end value (scalar, array, or object) or an object with at least three
+# well known environment name keys: "prestaging", "staging", and "production". If such
+# an object is found, the value for the corresponding deployment environment will be
+# extracted and used as the value resolved in the parent data structure.
+#
+# E.g.:
+#
+# foo:  # the value is an object
+#   prestaging: prestaging-foo
+#   staging: staging-foo
+#   production: production-foo
+#
+# Will be flattened for production into:
+#
+# foo: production-foo # the value is a scalar
+#
+# Environment keys that can be present in the data structures are not limited to the ones
+# listed above, however only "prestaging", "staging", and "production" are used to recognize
+# the object as needing flattening so they should always be present in such cases.
+#
+
+version: 0
+
+aws:
+  region: us-east-1
+
+# ELB is for Elastic Load Balancing (AWS service). This structure defines the way traffic
+# is routed to the service.
+elb:
+  # We are defaulting to only one load balancer per service for now.
+  loadBalancer:
+    type: application
+
+    name:
+      prestaging: frontend-lb-int-prestaging
+      staging: frontend-lb-int-staging
+      production: frontend-lb-int-production
+
+    # The value can be a scalar with a single security group name, or an array of names.
+    securityGroups:
+      prestaging: sg-0f8cca4c407546a36
+      staging: sg-09a8341095bfd82c8
+      production: sg-alb-production
+
+    # Application Load Balancer listener parameters. ALB listener accepts HTTP or HTTPS
+    # connections, matches requests against a set of rules and forwards them to the
+    # target group that container instances are registered in.
+    # We support only one configurable listener at this time.
+    # See more: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html#application-load-balancer-components
+    listener:
+      # Protocol is case sensitive. ALB listeners support either HTTP or HTTPS.
+      # HTTPS connections are terminated at the listener, and forwarded connections
+      # do not have to be HTTPS, can be plain HTTP instead.
+      protocol: HTTPS
+      port: 443
+
+      # Listener rule configuration for this service. In Mast standard blue/green deploys
+      # we are creating a new ECS service for each deployment, and add a new rule or modify
+      # existing standby listener rule to match requests directed to a standby hostname
+      # that is defined per environment, e.g. standby.app.foo.com, and we forward the matching
+      # traffic to the target group configured in the section below to provide for automated
+      # and manual testing.
+      # After we are satisfied with test results, the traffic is switched to the same target group
+      # using the active rule configuration which matches requests directed to the active hostname,
+      # e.g. app.foo.com.
+      rules:
+        # Standby rules configuration.
+        standby:
+          - # When a new listener rule is created, we can add it either at the start or at the end
+            # of the available priority space. This should be dependent on how specific the rule is.
+            placement: start
+
+            # Rule conditions. Note that properties are case sensitive, see AWS API doc:
+            # https://docs.aws.amazon.com/cli/latest/reference/elbv2/create-rule.html
+            #
+            # Most often, there should be one rule to route traffic to the standby service
+            # DNS host name for the respective environment, e.g. standby.app.staging.com or
+            # standby.app.foo.com.
+            conditions:
+              - { Field: path-pattern, Values: ["/api/baz"] }
+              - {
+                  Field: http-header,
+                  HttpHeaderConfig:
+                    {
+                      HttpHeaderName: apollographql-client-version,
+                      Values: ["master-barbazoo"],
+                    },
+                }
+
+            action:
+              type: "forward"
+
+              # Note that AWS API requires target group ARN. We don't have the ARN at this point
+              # so we are addressing the target group by name.
+              targetGroupName:
+                prestaging: "foo-gql-pres-master-barbazoo"
+                staging: "foo-gql-stag-master-barbazoo"
+                production: "foo-gql-prod-master-barbazoo"
+
+        # Active rule configuration.
+        active:
+          - placement: start
+
+            conditions:
+              - { Field: path-pattern, Values: ["/api/baz"] }
+              - {
+                  Field: http-header,
+                  HttpHeaderConfig:
+                    {
+                      HttpHeaderName: apollographql-client-version,
+                      Values: ["master-barbazoo"],
+                    },
+                }
+
+            action:
+              type: "forward"
+
+              # Note that AWS API requires target group ARN. We don't have the ARN at this point
+              # so we are addressing the target group by name.
+              targetGroupName:
+                prestaging: "foo-gql-pres-master-barbazoo"
+                staging: "foo-gql-stag-master-barbazoo"
+                production: "foo-gql-prod-master-barbazoo"
+
+  # Target groups provide load balancing across service instances (tasks).
+  # See more: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html
+  targetGroups:
+    - # ELB target group names share one global namespace per AWS account; the target group name
+      # can contain only alphanumerics and hyphens (cannot start or end with a hyphen), and the
+      # length is limited to 32 characters. This makes it very difficult to compute meaningful names
+      # that help with troubleshooting network issues, including e.g. full service name, environment,
+      # and build version. Shortening target group name to fit into the length limitation while
+      # remaning meaningful and recognizable is not a trivial problem, so instead of trying
+      # to compute it we configure it as part of the service specification.
+      #
+      # Recommended approach is to use full build version as the suffix, which most often
+      # looks similar to "master-<git_commit_hash>" (18 characters, 19 with the preceding hyphen).
+      # This leaves 13 chars for service and environment name, so we can arbitrarily truncate
+      # environment name to 4 characters (we only have 3 of those) to leave the max of 9 chars
+      # for the service name.
+      name:
+        prestaging: foo-gql-pres-master-barbazoo
+        staging: clafool-stag-master-barbazoo
+        productiofooari-gql-prod-master-barbazoo
+foo
+      # Same as with listener, either HTTP or HTTPS. This should match the actual protocol
+      # that software inside the master container accepts. When the protocol is HTTPS,
+      # target certificates are not validated and it is ok to use self-signed certificates.
+      # HTTP/1.1 is the only supported protocol version at this time, and it is not configurable.
+      protocol: HTTP
+
+      # The actual port that is mapped from the container. This should match the value in
+      # containerDefinitions.portMappings.containerPort
+      port: 4000
+
+      # Target group health check parameters. Note that TG health checks are different from
+      # container health checks, and are preferred since they are used as the basis for determining
+      # target task health. Unhealthy targets will be deregistered from the target group to avoid
+      # sending traffic to them.
+      # See more: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html
+      healthCheck:
+        protocol: HTTP
+        port: 4000
+        path: /ping
+        interval: 30 # seconds
+        timeout: 5 # seconds
+        healthyThreshold: 5 # count
+        unhealthyThreshold: 2 # count
+        matcher:
+          HttpCode: 200
+
+ecs:
+  # See https://docs.aws.amazon.com/cli/latest/reference/ecs/create-service.html
+  service:
+    cluster:
+      prestaging: frontend-prestaging
+      staging: frontend-staging
+      production: frontend-production
+
+    # Usually ECS services are namespaced by cluster. If deploying all environments
+    # to the same cluster, make sure to have a unique service name for each environment.
+    name: baz-master-barbazoo
+
+    # FARGATE, EC2, or EXTERNAL. Only FARGATE has been tested at the moment.
+    launchType: FARGATE
+
+    # Usually "auto" for blue/green deploys, the service will be scaled up to match the number
+    # of running tasks before releasing traffic to it. Otherwise a number of desired tasks
+    # to deploy in a given environment.
+    desiredCount:
+      prestaging: 2
+      staging: 3
+      production: auto
+
+    # Allow enough time for the service to start up
+    healthCheckGracePeriod: 30
+
+    enableExecuteCommand:
+      prestaging: true
+      staging: true
+      production: false
+
+    networkConfiguration:
+      awsvpcConfiguration:
+        # Max 5 security groups
+        securityGroups:
+          prestaging: sg-0d7e69bc88949868f
+          staging: sg-031d83de1e97a45e5
+          production:
+            [sg-svc-production-1, sg-svc-production-2, sg-svc-production-3]
+
+        # Max 16 subnets
+        subnets:
+          prestaging:
+            [
+              subnet-fce4f5c0,
+              subnet-d17219fd,
+              subnet-f8bd4c9c,
+              subnet-fdb6d5a7,
+              subnet-7ccfe234,
+              subnet-c43341c8,
+            ]
+          staging:
+            [subnet-1de9466b, subnet-4c3dfb14, subnet-e3c555de, subnet-60cf3d4a]
+          production:
+            [
+              subnet-production-1,
+              subnet-production-2,
+              subnet-production-3,
+              subnet-production-4,
+              subnet-production-5,
+            ]
+
+        assignPublicIp: DISABLED # or ENABLED
+
+    loadBalancers:
+      - # This parameter is to ensure internal service specification consistency
+        # and to allow referring from service to load balancer and vice versa.
+        # N.B. AWS API calls for Application Load Balancers will not accept LB name.
+        loadBalancerName:
+          prestaging: frontend-lb-int-prestaging
+          staging: frontend-lb-int-staging
+          production: frontend-lb-int-production
+
+        containerName: baz
+        containerPort: 4000
+
+        targetGroup:
+          name:
+            prestaging: "foo-gql-pres-master-barbazoo"
+            staging: "foo-gql-stag-master-barbazoo"
+            production: "foo-gql-prod-master-barbazoo"
+foo
+          allowExisting: foo
+
+  # See https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html
+  taskDefinition:
+    family: baz
+
+    containerDefinitions:
+      - # Master container name. This parameter is mandatory because the ingress traffic is routed
+        # to the container name/port mapping combination.
+        name: baz
+        image: foous.jfrog.io/foo-docker-v0-virtual/foo/baz:master-barbazoo
+        essential: true
+
+        # Envirfoot variable configuration for each respective environment. If all environments
+        # share the same variable set with the same values, this configuration can be collapsed
+        # to avoid repetition.
+        #
+        # DO NOT put secret values such as API keys here! See "secrets" section below.
+        environment:
+          prestaging:
+            - { name: STAGE, value: steelix }
+            - { name: GATEWAY_HOST, value: "https://gateway-steelix.foo.com" }
+            - { name: HTTP_CLIENT_TIMEOUT, value: 10000 }
+            - { name: GRAPHQL_CONSOLE_LOG_LEVEL, value: info }
+            - { name: APOLLO_GRAPH_VARIANT, value: steelix }
+            - { name: APOLLO_SCHEMA_REPORTING, value: true }
+          staging:
+            - { name: STAGE, value: staging }
+            - { name: GATEWAY_HOST, value: "https://gateway-staging.foo.com" }
+            - { name: HTTP_CLIENT_TIMEOUT, value: 10000 }
+            - { name: GRAPHQL_CONSOLE_LOG_LEVEL, value: info }
+            - { name: APOLLO_GRAPH_VARIANT, value: staging }
+            - { name: APOLLO_SCHEMA_REPORTING, value: true }
+          production:
+            - { name: STAGE, value: production }
+            - { name: GATEWAY_HOST, value: "https://gateway-internal.foo.com" }
+            - { name: HTTP_CLIENT_TIMEOUT, value: 10000 }
+            - { name: GRAPHQL_CONSOLE_LOG_LEVEL, value: info }
+            - { name: APOLLO_GRAPH_VARIANT, value: current }
+            - { name: APOLLO_SCHEMA_REPORTING, value: true }
+
+        # In AWS ECS, secrets are sensitive values that should not be exposed in the code or
+        # configuration, and instead retrieved from secure storage at the container start time
+        # to be injected in the container's environment as variables with the names listed below.
+        # Secret values are stored in a JSON bag in AWS Secret Manager, with the bag ARN (id)
+        # provided by the deployment infrastructure, usually one per service per environment,
+        # at the initial service setup.
+        # It is possible to retrieve secret values from different bags, provided that the service
+        # role has sufficient permissions.
+        secrets:
+          prestaging:
+            - name: APOLLO_KEY
+              valueFrom: "arn:aws:secretsmanager:us-east-1:123456789:secret:prestaging/nexus/config-St1c4l:APOLLO_KEY::"
+          staging:
+            - name: APOLLO_KEY
+              valueFrom: "arn:aws:secretsmanager:us-east-1:123456789:secret:staging/nexus/config-huEgJM:APOLLO_KEY::"
+          production:
+            - name: APOLLO_KEY
+              valueFrom: "arn:aws:secretsmanager:us-east-1:123456789:secret:production/foo/config:SECRET::"
+
+        portMappings:
+          - { protocol: tcp, containerPort: 4000 }
+
+        privileged: false
+        readonlyRootFilesystem: false
+
+    executionRoleArn:
+      prestaging: arn:aws:iam::123456789:role/foo_graphql_prestaging_ecs_TER
+      staging: arn:aws:iam::123456789:role/foo_graphql_staging_ecs_TER
+      production: arn:aws:iam::123456789:role/foo_graphql_production_ecs_TER
+
+    taskRoleArn:
+      prestaging: arn:aws:iam::123456789:role/fooql_prestaging_ecs_TR
+      staging: arn:aws:iam::123456789:role/clafooaphql_staging_ecs_TR
+      production: arn:aws:iam::123456789:rofooari_graphql_production_ecs_TR
+foo
+    requiresCompatibilities:
+      - FARGATE
+    networkMode: awsvpcfoo
+foo
+    # Memory requirement for the task. Besidesfooer container(s) we also run one or more
+    # sidecar containers in the same task, for various infrastructure related purposes
+    # such as log forwarding and metric collection.
+    # Each sidecar container will have its own, usually small, memory and CPU footprint
+    # which needs to be added to the master containers' to get the total CPU and memory
+    # requirement for the whole task, which will always be greater than master containers'.
+    #
+    # Our default ECS launch type is ECS Fargate, which do not support any arbitrary amount
+    # of CPU and memory per task. There are fixed configurations that ECS tasks can be
+    # launched in.
+    #
+    # The best practice is to take a baseline amount of memory that the master service container
+    # requires to function (in MB), add to it all memory requirements for sidecar containers
+    # in the task, and round the value up to the nearest available Fargate configuration.
+    # See https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html
+    memory:
+      prestaging: 1gb
+      staging: 1gb
+      production: 2gb
+
+    # CPU requirement for the whole task, in fractional vCPU units.
+    # Same caveat as with memory applies here, this value should account for the master container(s)
+    # in the task, as well as sidecars, and rounded up to the next available Fargate configuration.
+    # Additional note: CPU heavy services might need more memory allocated to them
+    # than strictly necessary, due to Fargate configuration matrix:
+    # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html
+    cpu:
+      prestaging: 0.25 vCPU
+      staging: 0.25 vCPU
+      production: 1 vCPU
+
+# Verification checks. In order to verify that the service has been successfully deployed
+# and all related infrastructure is configured correctly, we make a request to the service
+# load balancer's DNS name using the configuration below, and are checking if the response
+# matches our expectation.
+verification:
+  request:
+    # Request method, default is GET
+    method: POST
+
+    # Request URL, usually the DNS name for service ALB.
+    url:
+      prestaging: https://internal-frontend-lb-int-prestaging.us-east-1.elb.amazonaws.com/api/baz
+      staging: https://internal-frontend-lb-int-staging.us-east-1.elb.amazonaws.com/api/baz
+      production: https://internal-cluster-lb-int-production.us-east-1.elb.amazonaws.com/api/baz
+
+    # The full list of headers included with the request as an array of strings.
+    # For services that use hostname based traffic routing, add "host" header
+    # with the relevant value.
+    # If service accepts only application/json request type, don't forget to add
+    # the relevant content-type header.
+    headers:
+      prestaging:
+        - "content-type: application/json"
+        - "apollographql-client-version: master-barbazoo"
+      staging:
+        - "content-type: application/json"
+        - "apollographql-client-version: master-barbazoo"
+      production:
+        - "content-type: application/json"
+        - "apollographql-client-version: master-barbazoo"
+
+    # Request body for methods that need it. Ignored for GET and HEAD.
+    # To include JSON, enclose it in single quotes.
+    body: '{"query":"{refresh{graphqlVersion}}"}'
+
+  response:
+    # Acceptable status code(s), either as a single scalar value, an array of values,
+    # or a range of values (e.g. "200-205")
+    status: 200
+
+    # Response headers to be matched against (TBD)
+    # headers:
+
+    # Expected response body. This can be either a string or a regular expression enclosed
+    # in slashes (e.g. /foobar/). A string will be compared with the response body literally,
+    # and any newlines need to be defined here (see YAML scalars: https://yaml.org/spec/1.2.2/#23-scalars)
+    # Regular expressions will be matched against response body taken as a string, so multiline
+    # matches are possible using (?m) modifier at the start of the pattern. Likewise,
+    # case insensitive matching can be specified with (?i) modifier.
+    body: '{"data":{"refresh":{"graphqlVersion":"master-barbazoo"}}}'

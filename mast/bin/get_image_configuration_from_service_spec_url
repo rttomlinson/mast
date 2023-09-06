@@ -1,0 +1,45 @@
+#!/usr/bin/perl
+
+$| = 1;
+use v5.030;
+use warnings;
+no warnings 'uninitialized';
+
+use JSON::PP;
+use Getopt::Long;
+use Mast::Deploy::Step;
+
+my ($service_spec_url, $github_token, $docker_username, $docker_password, $output_file);
+my @auth_tokens;
+
+GetOptions(
+  'service-spec-url=s' => \$service_spec_url,
+  'github-token=s' => \$github_token,
+  'docker-username=s' => \$docker_username,
+  'docker-password=s' => \$docker_password,
+  'docker-registry-token=s' => \@auth_tokens,
+  'output-file=s' => \$output_file,
+)
+  or die "Error in command line arguments\n";
+
+die "Output file parameter is missing\n" unless length $output_file > 1;
+
+say "Using service spec url: $service_spec_url";
+say "Using Github token: " . ($github_token =~ s/./*/gr);
+say "Using docker hub username: $docker_username";
+say "Using docker hub password: " . ($docker_password =~ s/./*/gr);
+say "Using " . (scalar @auth_tokens) . " Docker registry auth tokens";
+
+my $docker_image_configuration = get_image_configuration_from_service_spec_url(
+  service_spec_url => $service_spec_url,
+  github_token => $github_token,
+  docker_username => $docker_username,
+  docker_password => $docker_password,
+  docker_registry_tokens => \@auth_tokens,
+);
+
+say "Successfully retrieved Docker image configuration from $service_spec_url.";
+
+open my $fh, ">", $output_file or die "Cannot open $output_file for writing: $!";
+say $fh encode_json $docker_image_configuration;
+close $fh;

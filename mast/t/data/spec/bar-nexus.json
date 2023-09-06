@@ -1,0 +1,447 @@
+{
+  "version": "0",
+  "aws": {
+    "region": "us-east-1"
+  },
+  "elb": {
+    "loadBalancer": {
+      "type": "application",
+      "name": {
+        "prestaging": "frontend-lb-int-prestaging",
+        "staging": "frontend-lb-int-staging",
+        "production": "frontend-lb-int-production"
+      },
+      "securityGroups": {
+        "prestaging": "sg-0f8cca4c407546a36",
+        "staging": "sg-09a8341095bfd82c8",
+        "production": "sg-alb-production"
+      },
+      "listener": {
+        "protocol": "HTTPS",
+        "port": 443,
+        "rules": {
+          "standby": [
+            {
+              "placement": "end",
+              "conditions": {
+                "prestaging": [
+                  {
+                    "Field": "host-header",
+                    "Values": [
+                      "standby.app.prestaging.foo.com"
+                    ]
+                  }
+                ],
+                "staging": [
+                  {
+                    "Field": "host-header",
+                    "Values": [
+                      "standby.app.staging.foo.com"
+                    ]
+                  }
+                ],
+                "production": [
+                  {
+                    "Field": "host-header",
+                    "Values": [
+                      "standby.app.foo.com"
+                    ]
+                  }
+                ]
+              },
+              "action": {
+                "type": "forward",
+                "targetGroupName": {
+                  "prestaging": "nexus-prestag-master-885307f158",
+                  "staging": "nexus-staging-master-885307f158",
+                  "production": "nexus-prod-master-885307f158"
+                }
+              }
+            }
+          ],
+          "active": [
+            {
+              "placement": "end",
+              "conditions": {
+                "prestaging": [
+                  {
+                    "Field": "host-header",
+                    "Values": [
+                      "app.prestaging.foo.com"
+                    ]
+                  }
+                ],
+                "staging": [
+                  {
+                    "Field": "host-header",
+                    "Values": [
+                      "app.staging.foo.com"
+                    ]
+                  }
+                ],
+                "production": [
+                  {
+                    "Field": "host-header",
+                    "Values": [
+                      "app.foo.com"
+                    ]
+                  }
+                ]
+              },
+              "action": {
+                "type": "forward",
+                "targetGroupName": {
+                  "prestaging": "nexus-prestag-master-885307f158",
+                  "staging": "nexus-staging-master-885307f158",
+                  "production": "nexus-prod-master-885307f158"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "targetGroups": [
+      {
+        "name": {
+          "prestaging": "nexus-prestag-master-885307f158",
+          "staging": "nexus-staging-master-885307f158",
+          "production": "nexus-prod-master-885307f158"
+        },
+        "protocol": "HTTPS",
+        "port": 443,
+        "healthCheck": {
+          "protocol": "HTTPS",
+          "port": 443,
+          "path": "/",
+          "interval": 30,
+          "timeout": 5,
+          "healthyThreshold": 5,
+          "unhealthyThreshold": 2,
+          "matcher": {
+            "HttpCode": 200
+          }
+        }
+      }
+    ]
+  },
+  "ecs": {
+    "service": {
+      "cluster": {
+        "prestaging": "frontend-prestaging",
+        "staging": "frontend-staging",
+        "production": "frontend-production"
+      },
+      "name": "foo-nexus-master-885307f158",
+      "launchType": "FARGATE",
+      "desiredCount": {
+        "prestaging": 2,
+        "staging": 3,
+        "production": "auto"
+      },
+      "healthCheckGracePeriod": 30,
+      "enableExecuteCommand": {
+        "prestaging": true,
+        "staging": true,
+        "production": false
+      },
+      "networkConfiguration": {
+        "awsvpcConfiguration": {
+          "securityGroups": {
+            "prestaging": "sg-0ea25c51e166c4687",
+            "staging": "sg-0f006bbaeffad9e6d",
+            "production": [
+              "sg-svc-production-1",
+              "sg-svc-production-2",
+              "sg-svc-production-3"
+            ]
+          },
+          "subnets": {
+            "prestaging": [
+              "subnet-fce4f5c0",
+              "subnet-d17219fd",
+              "subnet-f8bd4c9c",
+              "subnet-fdb6d5a7",
+              "subnet-7ccfe234",
+              "subnet-c43341c8"
+            ],
+            "staging": [
+              "subnet-1de9466b",
+              "subnet-4c3dfb14",
+              "subnet-e3c555de",
+              "subnet-60cf3d4a"
+            ],
+            "production": [
+              "subnet-production-1",
+              "subnet-production-2",
+              "subnet-production-3",
+              "subnet-production-4",
+              "subnet-production-5"
+            ]
+          },
+          "assignPublicIp": "DISABLED"
+        }
+      },
+      "loadBalancers": [
+        {
+          "loadBalancerName": {
+            "prestaging": "frontend-lb-int-prestaging",
+            "staging": "frontend-lb-int-staging",
+            "production": "frontend-lb-int-production"
+          },
+          "containerName": "foo-nexus",
+          "containerPort": 443,
+          "targetGroup": {
+            "name": {
+              "prestaging": "nexus-prestag-master-885307f158",
+              "staging": "nexus-staging-master-885307f158",
+              "production": "nexus-prod-master-885307f158"
+            },
+            "allowExisting": false
+          }
+        }
+      ]
+    },
+    "taskDefinition": {
+      "family": "foo-nexus",
+      "containerDefinitions": [
+        {
+          "name": "foo-nexus",
+          "image": "foous.jfrog.io/foo-docker-v0-virtual/foous.jfrog.io/foo-docker-v0-virtual/foo/foo-nexus:master-885307f158",
+          "essential": true,
+          "environment": {
+            "prestaging": [
+              {
+                "name": "CLOUD_ENV",
+                "value": "steelix"
+              },
+              {
+                "name": "APP_ENDPOINT",
+                "value": "app.prestaging.foo.com"
+              },
+              {
+                "name": "ADMIN_ENDPOINT",
+                "value": "admin-steelix.foo.com"
+              },
+              {
+                "name": "GATEWAY_ENDPOINT",
+                "value": "gateway-steelix.foo.com"
+              },
+              {
+                "name": "GRAPHQL_ENDPOINT",
+                "value": "http://127.0.0.1:4000"
+              },
+              {
+                "name": "SENTRY_DSN",
+                "value": "https://ab9a7e5bebb14e31bf411676ab52db21@sentry.io/159028"
+              },
+              {
+                "name": "GMAIL_OAUTH_CLIENT_ID",
+                "value": "193611791329-um7a05vpkasfm2ltkuu6at31p8cif477.apps.googleusercontent.com"
+              },
+              {
+                "name": "DATADOG_APP_ID",
+                "value": "4c1d7795-333a-4980-9d97-cce1d0a60e16"
+              },
+              {
+                "name": "HUBSPOT_INSTALL_URL",
+                "value": "https://app.hubspot.com/oauth/authorize?client_id=a7ab69cb-1111-1111-1111-111111111561&redirect_uri=https://gateway-steelix.foo.com/oauth/hubspot&scope=contacts"
+              },
+              {
+                "name": "OKTA_ISSUER",
+                "value": "https://foo-steelix.oktapreview.com/oauth2/default"
+              },
+              {
+                "name": "OKTA_CLIENT_REDIRECT_URI",
+                "value": "https://gateway-steelix.foo.com/oauth2/okta/authorize"
+              }
+            ],
+            "staging": [
+              {
+                "name": "CLOUD_ENV",
+                "value": "staging"
+              },
+              {
+                "name": "APP_ENDPOINT",
+                "value": "app.staging.foo.com"
+              },
+              {
+                "name": "ADMIN_ENDPOINT",
+                "value": "admin-staging.foo.com"
+              },
+              {
+                "name": "GATEWAY_ENDPOINT",
+                "value": "gateway-staging.foo.com"
+              },
+              {
+                "name": "GRAPHQL_ENDPOINT",
+                "value": "http://127.0.0.1:4000"
+              },
+              {
+                "name": "SENTRY_DSN",
+                "value": "https://ab9a7e5bebb14e31bf411676ab52db21@sentry.io/159028"
+              },
+              {
+                "name": "GMAIL_OAUTH_CLIENT_ID",
+                "value": "193611791329-um7a05vpkasfm2ltkuu6at31p8cif477.apps.googleusercontent.com"
+              },
+              {
+                "name": "DATADOG_APP_ID",
+                "value": "4c1d7795-333a-4980-9d97-cce1d0a60e16"
+              },
+              {
+                "name": "HUBSPOT_INSTALL_URL",
+                "value": "https://app.hubspot.com/oauth/authorize?client_id=a7ab69cb-1111-1111-1111-111111111561&redirect_uri=https://gateway-staging.foo.com/oauth/hubspot&scope=contacts"
+              },
+              {
+                "name": "OKTA_ISSUER",
+                "value": "https://foo-staging.oktapreview.com/oauth2/default"
+              },
+              {
+                "name": "OKTA_CLIENT_REDIRECT_URI",
+                "value": "https://gateway-staging.foo.com/oauth2/okta/authorize"
+              }
+            ],
+            "production": [
+              {
+                "name": "CLOUD_ENV",
+                "value": "production"
+              },
+              {
+                "name": "APP_ENDPOINT",
+                "value": "app.foo.com"
+              },
+              {
+                "name": "ADMIN_ENDPOINT",
+                "value": "admin.foo.com"
+              },
+              {
+                "name": "GATEWAY_ENDPOINT",
+                "value": "app.foo.com/gateway"
+              },
+              {
+                "name": "GRAPHQL_ENDPOINT",
+                "value": "http://127.0.0.1:4000"
+              },
+              {
+                "name": "SENTRY_DSN",
+                "value": "https://ab9a7e5bebb14e31bf411676ab52db21@sentry.io/159028"
+              },
+              {
+                "name": "GMAIL_OAUTH_CLIENT_ID",
+                "value": "193611791329-um7a05vpkasfm2ltkuu6at31p8cif477.apps.googleusercontent.com"
+              },
+              {
+                "name": "DATADOG_APP_ID",
+                "value": "4c1d7795-333a-4980-9d97-cce1d0a60e16"
+              },
+              {
+                "name": "HUBSPOT_INSTALL_URL",
+                "value": "https://app.hubspot.com/oauth/authorize?client_id=a7ab69cb-1111-1111-1111-111111111561&redirect_uri=https://app.foo.com/gateway/oauth/hubspot&scope=contacts"
+              },
+              {
+                "name": "OKTA_ISSUER",
+                "value": "https://foo.oktapreview.com/oauth2/default"
+              },
+              {
+                "name": "OKTA_CLIENT_REDIRECT_URI",
+                "value": "https://app.foo.com/gateway/oauth2/okta/authorize"
+              }
+            ]
+          },
+          "secrets": [
+            {
+              "name": "SEGMENT_KEY",
+              "valueFrom": {
+                "prestaging": "arn:aws:secretsmanager:us-east-1:123456789:secret:prestaging/nexus/config-St1c4l:SEGMENT_KEY::",
+                "staging": "arn:aws:secretsmanager:us-east-1:123456789:secret:staging/nexus/config-huEgJM:SEGMENT_KEY::",
+                "production": "arn:aws:secretsmanager:us-east-1:123456789:secret:production/nexus/config:SEGMENT_KEY::"
+              }
+            },
+            {
+              "name": "OKTA_CLIENT_ID",
+              "valueFrom": {
+                "prestaging": "arn:aws:secretsmanager:us-east-1:123456789:secret:prestaging/nexus/config-St1c4l:OKTA_CLIENT_ID::",
+                "staging": "arn:aws:secretsmanager:us-east-1:123456789:secret:staging/nexus/config-huEgJM:OKTA_CLIENT_ID::",
+                "production": "arn:aws:secretsmanager:us-east-1:123456789:secret:production/nexus/config:OKTA_CLIENT_ID::"
+              }
+            },
+            {
+              "name": "SALESFORCE_OAUTH_CLIENT_ID",
+              "valueFrom": {
+                "prestaging": "arn:aws:secretsmanager:us-east-1:123456789:secret:prestaging/nexus/config-St1c4l:SALESFORCE_OAUTH_CLIENT_ID::",
+                "staging": "arn:aws:secretsmanager:us-east-1:123456789:secret:staging/nexus/config-huEgJM:SALESFORCE_OAUTH_CLIENT_ID::",
+                "production": "arn:aws:secretsmanager:us-east-1:123456789:secret:production/nexus/config:SALESFORCE_OAUTH_CLIENT_ID::"
+              }
+            },
+            {
+              "name": "DATADOG_CLIENT_TOKEN",
+              "valueFrom": {
+                "prestaging": "arn:aws:secretsmanager:us-east-1:123456789:secret:prestaging/nexus/config-St1c4l:DATADOG_CLIENT_TOKEN::",
+                "staging": "arn:aws:secretsmanager:us-east-1:123456789:secret:staging/nexus/config-huEgJM:DATADOG_CLIENT_TOKEN::",
+                "production": "arn:aws:secretsmanager:us-east-1:123456789:secret:production/nexus/config:DATADOG_CLIENT_TOKEN::"
+              }
+            }
+          ],
+          "portMappings": [
+            {
+              "protocol": "tcp",
+              "containerPort": 443
+            }
+          ],
+          "privileged": false,
+          "readonlyRootFilesystem": false
+        }
+      ],
+      "executionRoleArn": {
+        "prestaging": "arn:aws:iam::123456789:role/foo_nexus_prestaging_ecs_TER",
+        "staging": "arn:aws:iam::123456789:role/foo_nexus_staging_ecs_TER",
+        "production": "arn:aws:iam::123456789:role/foo_nexus_production_ecs_TER"
+      },
+      "taskRoleArn": {
+        "prestaging": "arn:aws:iam::123456789:role/foo_nexus_prestaging_ecs_TR",
+        "staging": "arn:aws:iam::123456789:role/foo_nexus_staging_ecs_TR",
+        "production": "arn:aws:iam::123456789:role/foo_nexus_production_ecs_TR"
+      },
+      "requiresCompatibilities": [
+        "FARGATE"
+      ],
+      "networkMode": "awsvpc",
+      "memory": {
+        "prestaging": "1gb",
+        "staging": "1gb",
+        "production": "1gb"
+      },
+      "cpu": {
+        "prestaging": "0.25 vCPU",
+        "staging": "0.25 vCPU",
+        "production": "1 vCPU"
+      }
+    }
+  },
+  "verification": {
+    "request": {
+      "method": "GET",
+      "url": {
+        "prestaging": "https://internal-frontend-lb-int-prestaging.us-east-1.elb.amazonaws.com/",
+        "staging": "https://internal-frontend-lb-int-staging.us-east-1.elb.amazonaws.com/",
+        "production": "https://internal-cluster-lb-int-production.us-east-1.elb.amazonaws.com/"
+      },
+      "headers": {
+        "prestaging": [
+          "host: standby.app.prestaging.foo.com"
+        ],
+        "staging": [
+          "host: standby.app.staging.foo.com"
+        ],
+        "production": [
+          "host: standby.app.foo.com"
+        ]
+      }
+    },
+    "response": {
+      "status": 200,
+      "body": "/buildVersion:[ ]+\"master-885307f158\"/"
+    }
+  }
+}

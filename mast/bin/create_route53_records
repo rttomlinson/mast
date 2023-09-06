@@ -1,0 +1,29 @@
+#!/usr/bin/perl
+
+$| = 1;
+use v5.030;
+use warnings;
+
+use Getopt::Long;
+use Mast::Deploy::Step;
+
+my ($environment, $service_spec_json, $poll_interval);
+
+GetOptions(
+  'environment=s' => \$environment,
+  'service-spec-json=s' => \$service_spec_json,
+  'poll-interval=i' => \$poll_interval,
+)
+  or die "Error in command line arguments\n";
+
+$poll_interval //= 10;
+
+say "Environment: $environment";
+say "Service spec: $service_spec_json";
+say "Poll interval: $poll_interval (seconds)";
+
+create_route53_records(
+  environment => $environment,
+  service_spec_json => $service_spec_json,
+  poll_interval => $poll_interval,
+);
