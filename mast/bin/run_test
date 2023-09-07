@@ -1,0 +1,34 @@
+#!/usr/bin/perl
+
+$| = 1;
+use v5.030;
+use warnings;
+
+use Getopt::Long;
+use Mast::Deploy::Step;
+
+my ($environment, $service_spec_json, $test_name, $poll_interval);
+
+GetOptions(
+  'environment=s' => \$environment,
+  'service-spec-json=s' => \$service_spec_json,
+  'test-name=s' => \$test_name,
+  'poll-interval=i' => \$poll_interval,
+)
+  or die "Error in command line arguments\n";
+
+$poll_interval //= 10;
+
+say "Environment: $environment";
+say "Service spec: $service_spec_json";
+say "Test suite name: $test_name";
+say "Poll interval: $poll_interval (seconds)";
+
+my $exit_code = run_test(
+  environment => $environment,
+  service_spec_json => $service_spec_json,
+  test_name => $test_name,
+  poll_interval => $poll_interval,
+);
+
+exit $exit_code;

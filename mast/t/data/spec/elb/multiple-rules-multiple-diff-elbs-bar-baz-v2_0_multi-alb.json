@@ -1,0 +1,726 @@
+{
+    "version": "2.0",
+    "deploy": {
+        "provider": "harness",
+        "harnessConfiguration": {
+            "pipeline": "foo-foo",
+            "triggerUrl": "https://app.harness.io/gateway/api/webhooks/foo-foo?accountId=peSAz-_HRnyg80J_7dFk2g"
+        }
+    },
+    "aws": {
+        "region": "us-east-1",
+        "elb": {
+            "loadBalancers": [
+                {
+                    "type": "application",
+                    "name": {
+                        "prestaging": "cluster-lb-int-prestaging",
+                        "staging": "cluster-lb-int-staging",
+                        "production": "cluster-lb-int-production"
+                    },
+                    "securityGroups": {
+                        "prestaging": "sg-alb-prestaging",
+                        "staging": "sg-alb-staging",
+                        "production": "sg-alb-production"
+                    },
+                    "listeners": [
+                        {
+                            "protocol": "HTTPS",
+                            "port": 444,
+                            "rules": {
+                                "standby": [
+                                    {
+                                        "placement": "end",
+                                        "conditions": {
+                                            "prestaging": [
+                                                {
+                                                    "Field": "host-header",
+                                                    "Values": [
+                                                        "standby.foo.prestaging.foo.com"
+                                                    ]
+                                                }
+                                            ],
+                                            "staging": [
+                                                {
+                                                    "Field": "host-header",
+                                                    "Values": [
+                                                        "standby.foo.staging.foo.com"
+                                                    ]
+                                                }
+                                            ],
+                                            "production": [
+                                                {
+                                                    "Field": "host-header",
+                                                    "Values": [
+                                                        "standby.foo.foo.com"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "action": {
+                                            "type": "forward",
+                                            "targetGroupName": {
+                                                "prestaging": "clr-foo-pres-master-foobaroo",
+                                                "staging": "clr-foo-stag-master-foobaroo",
+                                                "production": "clr-foo-prod-master-foobaroo"
+                                            }
+                                        }
+                                    }
+                                ],
+                                "active": [
+                                    {
+                                        "placement": "end",
+                                        "conditions": {
+                                            "prestaging": [
+                                                {
+                                                    "Field": "host-header",
+                                                    "Values": [
+                                                        "foo.prestaging.foo.com"
+                                                    ]
+                                                }
+                                            ],
+                                            "staging": [
+                                                {
+                                                    "Field": "host-header",
+                                                    "Values": [
+                                                        "foo.staging.foo.com"
+                                                    ]
+                                                }
+                                            ],
+                                            "production": [
+                                                {
+                                                    "Field": "host-header",
+                                                    "Values": [
+                                                        "foo.foo.com"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "action": {
+                                            "type": "forward",
+                                            "targetGroupName": {
+                                                "prestaging": "clr-foo-pres-master-foobaroo",
+                                                "staging": "clr-foo-stag-master-foobaroo",
+                                                "production": "clr-foo-prod-master-foobaroo"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "application",
+                    "name": {
+                        "prestaging": "cluster-lb-int-pre",
+                        "staging": "cluster-lb-int-sta",
+                        "production": "cluster-lb-int-prod"
+                    },
+                    "securityGroups": {
+                        "prestaging": "sg-alb-prestaging",
+                        "staging": "sg-alb-staging",
+                        "production": "sg-alb-production"
+                    },
+                    "listeners": [
+                        {
+                            "protocol": "HTTPS",
+                            "port": 443,
+                            "rules": {
+                                "standby": [
+                                    {
+                                        "placement": "end",
+                                        "conditions": {
+                                            "prestaging": [
+                                                {
+                                                    "Field": "host-header",
+                                                    "Values": [
+                                                        "standby.foo.prestaging.foo.com"
+                                                    ]
+                                                }
+                                            ],
+                                            "staging": [
+                                                {
+                                                    "Field": "host-header",
+                                                    "Values": [
+                                                        "standby.foo.staging.foo.com"
+                                                    ]
+                                                }
+                                            ],
+                                            "production": [
+                                                {
+                                                    "Field": "host-header",
+                                                    "Values": [
+                                                        "standby.foo.foo.com"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "action": {
+                                            "type": "forward",
+                                            "targetGroupName": {
+                                                "prestaging": "clr-foo-pres-master-foob",
+                                                "staging": "clr-foo-stag-master-foob",
+                                                "production": "clr-foo-prod-master-foob"
+                                            }
+                                        }
+                                    }
+                                ],
+                                "active": [
+                                    {
+                                        "placement": "end",
+                                        "conditions": {
+                                            "prestaging": [
+                                                {
+                                                    "Field": "host-header",
+                                                    "Values": [
+                                                        "foo.prestaging.foo.com"
+                                                    ]
+                                                }
+                                            ],
+                                            "staging": [
+                                                {
+                                                    "Field": "host-header",
+                                                    "Values": [
+                                                        "foo.staging.foo.com"
+                                                    ]
+                                                }
+                                            ],
+                                            "production": [
+                                                {
+                                                    "Field": "host-header",
+                                                    "Values": [
+                                                        "foo.foo.com"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "action": {
+                                            "type": "forward",
+                                            "targetGroupName": {
+                                                "prestaging": "clr-foo-pres-master-foob",
+                                                "staging": "clr-foo-stag-master-foob",
+                                                "production": "clr-foo-prod-master-foob"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "placement": "end",
+                                        "conditions": {
+                                            "prestaging": [
+                                                {
+                                                    "Field": "host-header",
+                                                    "Values": [
+                                                        "foo.prestaging.foo.com"
+                                                    ]
+                                                }
+                                            ],
+                                            "staging": [
+                                                {
+                                                    "Field": "host-header",
+                                                    "Values": [
+                                                        "foo.staging.foo.com"
+                                                    ]
+                                                }
+                                            ],
+                                            "production": [
+                                                {
+                                                    "Field": "host-header",
+                                                    "Values": [
+                                                        "foo.foo.com"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "action": {
+                                            "type": "forward",
+                                            "targetGroupName": {
+                                                "prestaging": "clr-foo-pres-master-foobz",
+                                                "staging": "clr-foo-stag-master-foobz",
+                                                "production": "clr-foo-prod-master-foobz"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ],
+            "targetGroups": [
+                {
+                    "name": {
+                        "prestaging": "clr-foo-pres-master-foobaroo",
+                        "staging": "clr-foo-stag-master-foobaroo",
+                        "production": "clr-foo-prod-master-foobaroo"
+                    },
+                    "protocol": "HTTPS",
+                    "port": 4321,
+                    "healthCheck": {
+                        "protocol": "HTTPS",
+                        "port": 4321,
+                        "path": "/",
+                        "interval": 30,
+                        "timeout": 5,
+                        "healthyThreshold": 5,
+                        "unhealthyThreshold": 2,
+                        "matcher": {
+                            "HttpCode": 200
+                        }
+                    }
+                },
+                {
+                    "name": {
+                        "prestaging": "clr-foo-pres-master-foob",
+                        "staging": "clr-foo-stag-master-foob",
+                        "production": "clr-foo-prod-master-foob"
+                    },
+                    "protocol": "HTTPS",
+                    "port": 4321,
+                    "healthCheck": {
+                        "protocol": "HTTPS",
+                        "port": 4321,
+                        "path": "/",
+                        "interval": 30,
+                        "timeout": 5,
+                        "healthyThreshold": 5,
+                        "unhealthyThreshold": 2,
+                        "matcher": {
+                            "HttpCode": 200
+                        }
+                    }
+                },
+                {
+                    "name": {
+                        "prestaging": "clr-foo-pres-master-foobz",
+                        "staging": "clr-foo-stag-master-foobz",
+                        "production": "clr-foo-prod-master-foobz"
+                    },
+                    "protocol": "HTTPS",
+                    "port": 4321,
+                    "healthCheck": {
+                        "protocol": "HTTPS",
+                        "port": 4321,
+                        "path": "/",
+                        "interval": 30,
+                        "timeout": 5,
+                        "healthyThreshold": 5,
+                        "unhealthyThreshold": 2,
+                        "matcher": {
+                            "HttpCode": 200
+                        }
+                    }
+                }
+            ]
+        },
+        "ecs": {
+            "service": {
+                "cluster": {
+                    "prestaging": "cluster-prestaging",
+                    "staging": "cluster-staging",
+                    "production": "cluster-production"
+                },
+                "name": "foo-foo-master-foobaroo",
+                "launchType": "FARGATE",
+                "desiredCount": 1,
+                "healthCheckGracePeriod": 30,
+                "enableExecuteCommand": {
+                    "prestaging": true,
+                    "staging": true,
+                    "production": false
+                },
+                "networkConfiguration": {
+                    "awsvpcConfiguration": {
+                        "securityGroups": {
+                            "prestaging": "sg-svc-prestaging",
+                            "staging": [
+                                "sg-svc-staging-1",
+                                "sg-svc-staging-2"
+                            ],
+                            "production": [
+                                "sg-svc-production-1",
+                                "sg-svc-production-2",
+                                "sg-svc-production-3"
+                            ]
+                        },
+                        "subnets": {
+                            "prestaging": [
+                                "subnet-prestaging-1",
+                                "subnet-prestaging-2",
+                                "subnet-prestaging-3"
+                            ],
+                            "staging": [
+                                "subnet-staging-1",
+                                "subnet-staging-2"
+                            ],
+                            "production": [
+                                "subnet-production-1",
+                                "subnet-production-2",
+                                "subnet-production-3",
+                                "subnet-production-4",
+                                "subnet-production-5"
+                            ]
+                        },
+                        "assignPublicIp": "DISABLED"
+                    }
+                },
+                "loadBalancers": [
+                    {
+                        "loadBalancerName": {
+                            "prestaging": "cluster-lb-int-prestaging",
+                            "staging": "cluster-lb-int-staging",
+                            "production": "cluster-lb-int-production"
+                        },
+                        "containerName": "foo-foo",
+                        "containerPort": 4321,
+                        "targetGroup": {
+                            "name": {
+                                "prestaging": "clr-foo-pres-master-foobaroo",
+                                "staging": "clr-foo-stag-master-foobaroo",
+                                "production": "clr-foo-prod-master-foobaroo"
+                            },
+                            "allowExisting": false
+                        }
+                    },
+                    {
+                        "loadBalancerName": {
+                            "prestaging": "cluster-lb-int-pre",
+                            "staging": "cluster-lb-int-sta",
+                            "production": "cluster-lb-int-prod"
+                        },
+                        "containerName": "foo-foo",
+                        "containerPort": 4321,
+                        "targetGroup": {
+                            "name": {
+                                "prestaging": "clr-foo-pres-master-foobaroo",
+                                "staging": "clr-foo-stag-master-foobaroo",
+                                "production": "clr-foo-prod-master-foobaroo"
+                            },
+                            "allowExisting": false
+                        }
+                    }
+                ]
+            },
+            "taskDefinition": {
+                "family": "foo-foo",
+                "containerDefinitions": [
+                    {
+                        "name": "foo-foo",
+                        "image": "foo/foo-foo:master-foobaroo",
+                        "essential": true,
+                        "environment": {
+                            "prestaging": [
+                                {
+                                    "name": "STAGE",
+                                    "value": "steelix"
+                                },
+                                {
+                                    "name": "FOO",
+                                    "value": "bar"
+                                }
+                            ],
+                            "staging": [
+                                {
+                                    "name": "STAGE",
+                                    "value": "staging"
+                                },
+                                {
+                                    "name": "FOO",
+                                    "value": "baz"
+                                }
+                            ],
+                            "production": [
+                                {
+                                    "name": "STAGE",
+                                    "value": "production"
+                                },
+                                {
+                                    "name": "FOO",
+                                    "value": "qux"
+                                },
+                                {
+                                    "name": "PRODUCTION_ONLY",
+                                    "value": true
+                                }
+                            ]
+                        },
+                        "secrets": {
+                            "prestaging": [
+                                {
+                                    "name": "SECRET",
+                                    "valueFrom": "arn:aws:secretsmanager:us-east-1:12345678901:secret:prestaging/foo-foo/config:SECRET::"
+                                },
+                                {
+                                    "name": "API_KEY",
+                                    "valueFrom": "arn:aws:secretsmanager:us-east-1:12345678901:secret:prestaging/foo-foo/api_keys:API_KEY::"
+                                }
+                            ],
+                            "staging": [
+                                {
+                                    "name": "SECRET",
+                                    "valueFrom": "arn:aws:secretsmanager:us-east-1:12345678901:secret:staging/foo-foo/config:SECRET::"
+                                },
+                                {
+                                    "name": "API_KEY",
+                                    "valueFrom": "arn:aws:secretsmanager:us-east-1:12345678901:secret:staging/foo-foo/api_keys:API_KEY::"
+                                }
+                            ],
+                            "production": [
+                                {
+                                    "name": "SECRET",
+                                    "valueFrom": "arn:aws:secretsmanager:us-east-1:12345678901:secret:production/foo-foo/config:SECRET::"
+                                },
+                                {
+                                    "name": "API_KEY",
+                                    "valueFrom": "arn:aws:secretsmanager:us-east-1:12345678901:secret:production/foo-foo/api_keys:API_KEY::"
+                                }
+                            ]
+                        },
+                        "logConfiguration": {
+                            "logDriver": "awsfirelens",
+                            "options": {
+                                "Format": "json_lines",
+                                "Header": {
+                                    "prestaging": "X-Sumo-Category ECS/prestaging/foo-foo",
+                                    "staging": "X-Sumo-Category ECS/staging/foo-foo",
+                                    "production": "X-Sumo-Category ECS/production/foo-foo"
+                                },
+                                "Host": "endpoint1.collection.us2.sumologic.com",
+                                "Name": "http",
+                                "Port": "443",
+                                "tls": "on",
+                                "tls.verify": "off"
+                            },
+                            "secretOptions": [
+                                {
+                                    "name": "URI",
+                                    "valueFrom": {
+                                        "prestaging": "arn:aws:secretsmanager:us-east-1:12345678901:secret:infra/prestaging/deployment:SUMOLOGIC_HTTP_SOURCE_URI::",
+                                        "staging": "arn:aws:secretsmanager:us-east-1:12345678901:secret:infra/staging/deployment:SUMOLOGIC_HTTP_SOURCE_URI::",
+                                        "production": "arn:aws:secretsmanager:us-east-1:12345678901:secret:infra/production/deployment:SUMOLOGIC_HTTP_SOURCE_URI::"
+                                    }
+                                }
+                            ]
+                        },
+                        "portMappings": [
+                            {
+                                "protocol": "tcp",
+                                "containerPort": 4321
+                            }
+                        ],
+                        "privileged": false,
+                        "readonlyRootFilesystem": false,
+                        "repositoryCredentials": {
+                            "credentialsParameter": "arn:aws:secretsmanager:us-east-1:12345678901:secret:foo_dockerhub_foodeploy-aKXqDz"
+                        }
+                    },
+                    {
+                        "name": "laceworks-sidecar",
+                        "image": "foo/lacework:latest",
+                        "essential": false,
+                        "environment": [
+                            {
+                                "name": "LaceworkVerbose",
+                                "value": "true"
+                            }
+                        ],
+                        "logConfiguration": {
+                            "logDriver": "awslogs",
+                            "options": {
+                                "awslogs-region": "us-east-1",
+                                "awslogs-stream-prefix": "ecs",
+                                "awslogs-group": {
+                                    "prestaging": "/aws/ecs/prestaging/foo-foo",
+                                    "staging": "/aws/ecs/staging/foo-foo",
+                                    "production": "/aws/ecs/production/foo-foo"
+                                }
+                            }
+                        },
+                        "repositoryCredentials": {
+                            "credentialsParameter": "arn:aws:secretsmanager:us-east-1:12345678901:secret:foo_dockerhub_foodeploy-aKXqDz"
+                        },
+                        "cpu": 64,
+                        "memory": 64,
+                        "portMappings": [],
+                        "readonlyRootFilesystem": false
+                    },
+                    {
+                        "name": "datadog-agent",
+                        "image": "foo/datadog-agent:latest",
+                        "essential": true,
+                        "environment": [
+                            {
+                                "name": "ECS_FARGATE",
+                                "value": "true"
+                            }
+                        ],
+                        "secrets": [
+                            {
+                                "name": "DD_API_KEY",
+                                "valueFrom": {
+                                    "prestaging": "arn:aws:secretsmanager:us-east-1:12345678901:secret:infra/prestaging/deployment:DATADOG_API_KEY::",
+                                    "staging": "arn:aws:secretsmanager:us-east-1:12345678901:secret:infra/staging/deployment:DATADOG_API_KEY::",
+                                    "production": "arn:aws:secretsmanager:us-east-1:12345678901:secret:infra/production/deployment:DATADOG_API_KEY::"
+                                }
+                            }
+                        ],
+                        "repositoryCredentials": {
+                            "credentialsParameter": "arn:aws:secretsmanager:us-east-1:12345678901:secret:foo_dockerhub_foodeploy-aKXqDz"
+                        },
+                        "logConfiguration": {
+                            "logDriver": "awslogs",
+                            "options": {
+                                "awslogs-region": "us-east-1",
+                                "awslogs-stream-prefix": "ecs",
+                                "awslogs-group": {
+                                    "prestaging": "/aws/ecs/prestaging/foo-foo",
+                                    "staging": "/aws/ecs/staging/foo-foo",
+                                    "production": "/aws/ecs/production/foo-foo"
+                                }
+                            }
+                        },
+                        "cpu": 128,
+                        "memory": 128,
+                        "portMappings": [],
+                        "readonlyRootFilesystem": false
+                    },
+                    {
+                        "name": "log_router_sumo",
+                        "image": "amazon/aws-for-fluent-bit:latest",
+                        "essential": true,
+                        "firelensConfiguration": {
+                            "options": {
+                                "enable-ecs-log-metadata": "true"
+                            },
+                            "type": "fluentbit"
+                        },
+                        "logConfiguration": {
+                            "logDriver": "awslogs",
+                            "options": {
+                                "awslogs-region": "us-east-1",
+                                "awslogs-stream-prefix": "ecs",
+                                "awslogs-group": {
+                                    "prestaging": "/aws/ecs/prestaging/foo-foo",
+                                    "staging": "/aws/ecs/staging/foo-foo",
+                                    "production": "/aws/ecs/production/foo-foo"
+                                }
+                            }
+                        },
+                        "repositoryCredentials": {
+                            "credentialsParameter": "arn:aws:secretsmanager:us-east-1:12345678901:secret:foo_dockerhub_foodeploy-aKXqDz"
+                        },
+                        "cpu": 64,
+                        "memory": 64,
+                        "portMappings": [],
+                        "readonlyRootFilesystem": false,
+                        "user": "0"
+                    }
+                ],
+                "executionRoleArn": "arn:aws:iam::12345678901:role/foo_foo_staging_ecs_TER",
+                "taskRoleArn": "arn:aws:iam::12345678901:role/foo_foo_staging_ecs_TR",
+                "requiresCompatibilities": [
+                    "FARGATE"
+                ],
+                "networkMode": "awsvpc",
+                "memory": {
+                    "prestaging": "1gb",
+                    "staging": "2gb",
+                    "production": "8gb"
+                },
+                "cpu": {
+                    "prestaging": "0.25 vCPU",
+                    "staging": "1 vCPU",
+                    "production": "2 vCPU"
+                }
+            },
+            "tasks": {
+                "standbySmokeTest": {
+                    "cluster": "frontend-staging",
+                    "desiredCount": 1,
+                    "launchType": "FARGATE",
+                    "taskDefinition": {
+                        "family": "frontend-staging-smoke-test",
+                        "containerDefinitions": [
+                            {
+                                "name": "end2end-tests",
+                                "image": "foo/end2end-tests:latest",
+                                "essential": true,
+                                "logConfiguration": {
+                                    "logDriver": "awslogs",
+                                    "options": {
+                                        "awslogs-region": "us-east-1",
+                                        "awslogs-stream-prefix": "ecs",
+                                        "awslogs-group": "/ecs/end2end-smoke-tests"
+                                    }
+                                },
+                                "environment": [
+                                    {
+                                        "name": "appUrl",
+                                        "value": "https://app-test.staging.foo.com"
+                                    },
+                                    {
+                                        "name": "cloud_env",
+                                        "value": "staging"
+                                    }
+                                ],
+                                "secrets": [
+                                    {
+                                        "name": "someSecret",
+                                        "valueFrom": "arn:aws:secretsmanager:us-east-1:123456:secret:staging/end2end-tests/config:SECRET::"
+                                    }
+                                ],
+                                "command": [
+                                    "/run-tests.sh"
+                                ]
+                            }
+                        ],
+                        "memory": "4gb",
+                        "cpu": "2 vCPU",
+                        "requiresCompatibilities": "FARGATE",
+                        "networkMode": "awsvpc",
+                        "executionRoleArn": "arn:aws:iam::123456:role/foo_foo_staging_ecs_TER",
+                        "taskRoleArn": "arn:aws:iam::123456:role/foo_foo_staging_ecs_TR"
+                    },
+                    "networkConfiguration": {
+                        "awsvpcConfiguration": {
+                            "securityGroups": [
+                                "sg-foo",
+                                "sg-bar"
+                            ],
+                            "subnets": [
+                                "subnet-blerg",
+                                "subnet-throbbe"
+                            ],
+                            "assignPublicIp": "DISABLED"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "verification": {
+        "request": {
+            "method": "GET",
+            "url": {
+                "prestaging": "https://internal-cluster-lb-int-prestaging.us-east-1.elb.amazonaws.com/foo-foo",
+                "staging": "https://internal-cluster-lb-int-staging.us-east-1.elb.amazonaws.com/foo-foo",
+                "production": "https://internal-cluster-lb-int-production.us-east-1.elb.amazonaws.com/foo-foo"
+            },
+            "headers": {
+                "prestaging": [
+                    "host: standby.foo.prestaging.foo.com"
+                ],
+                "staging": [
+                    "host: standby.foo.staging.foo.com"
+                ],
+                "production": [
+                    "host: standby.foo.foo.com"
+                ]
+            }
+        },
+        "response": {
+            "status": 200,
+            "body": "/buildVersion:\\s+\"master-foobaroo\"/"
+        }
+    }
+}

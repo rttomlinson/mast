@@ -1,0 +1,33 @@
+#!/usr/bin/perl
+
+$| = 1;
+use v5.030;
+use warnings;
+
+use JSON::PP;
+use Getopt::Long;
+use Mast::Deploy::Step;
+
+my ($environment, $service_spec_json, $output_file);
+
+GetOptions(
+  'environment=s' => \$environment,
+  'service-spec-json=s' => \$service_spec_json,
+  'output-file=s' => \$output_file,
+)
+  or die "Error in command line arguments\n";
+
+say "Environment: $environment";
+say "Service spec: $service_spec_json";
+
+my $actualized_spec = validate_service_spec(
+  environment => $environment,
+  service_spec_json => $service_spec_json,
+);
+
+# Output is optional
+if ($output_file) {
+  open my $fh, ">", $output_file or die "Cannot open $output_file for writing: $!\n";
+  print $fh encode_json $actualized_spec->service_spec;
+  close $fh;
+}

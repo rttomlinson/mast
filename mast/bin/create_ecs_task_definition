@@ -1,0 +1,37 @@
+#!/usr/bin/perl
+
+$| = 1;
+use v5.030;
+use warnings;
+no warnings 'uninitialized';
+
+use Getopt::Long;
+use JSON::PP;
+use Mast::Deploy::Step;
+
+my ($environment, $service_spec_json, $service_spec_url, $output_file);
+
+GetOptions(
+  'environment=s' => \$environment,
+  'service-spec-json=s' => \$service_spec_json,
+  'service-spec-url=s' => \$service_spec_url,
+  'output-file=s' => \$output_file,
+)
+  or die "Error in command line arguments\n";
+
+die "Output file parameter is missing\n" unless length $output_file > 1;
+
+say "Environment: $environment";
+say "Service spec URL: $service_spec_url";
+say "Service spec: $service_spec_json";
+
+
+my $task_definition_arn = create_ecs_task_definition(
+  environment => $environment, 
+  service_spec_json => $service_spec_json,
+  service_spec_url => $service_spec_url,
+);
+
+open my $fh, ">", $output_file or die "Cannot open $output_file for writing: $!";
+say $fh qq|export task_definition_arn='$task_definition_arn'|;
+close $fh;

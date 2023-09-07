@@ -1,0 +1,48 @@
+#!/usr/bin/perl
+
+$| = 1;
+use v5.030;
+use warnings;
+no warnings 'uninitialized';
+
+use Getopt::Long;
+use Mast::Deploy::Step;
+
+my ($environment, $service_spec_json, $docker_username, $docker_password, $github_token,
+    $output_file, @auth_tokens);
+
+GetOptions(
+  'environment=s' => \$environment,
+  'service-spec-json=s' => \$service_spec_json,
+  'docker-username=s' => \$docker_username,
+  'docker-password=s' => \$docker_password,
+  'github-token=s' => \$github_token,
+  'docker-registry-token=s' => \@auth_tokens,
+  'output-file=s' => \$output_file,
+)
+  or die "Error in command line arguments\n";
+
+die "Output file parameter is missing\n" unless length $output_file > 1;
+
+say "Environment: $environment";
+say "Service spec: $service_spec_json";
+say "Docker hub username: $docker_username";
+say "Docker hub password: " . ($docker_password =~ s/./*/gr);
+say "Using " . (scalar @auth_tokens) . " Docker registry auth tokens";
+say "Github token: " . ($github_token =~ s/./*/gr);
+
+my ($current_active_service_spec_json, $spec_url) = get_service_spec_from_active_service_cluster_tag(
+  environment => $environment,
+  service_spec_json => $service_spec_json,
+  docker_username => $docker_username,
+  docker_password => $docker_password,
+  docker_registry_tokens => \@auth_tokens,
+  github_token => $github_token,
+);
+
+say "Successfully retrieved service spec from $spec_url.";
+
+open my $fh, ">", $output_file or die "Cannot open $output_file for writing: $!";
+say $fh qq|export service_spec='$current_active_service_spec_json'|;
+say $fh qq|export service_spec_url='$spec_url'|;
+close $fh;

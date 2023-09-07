@@ -1,0 +1,51 @@
+#!/usr/bin/perl
+
+$| = 1;
+use v5.030;
+use strictures 2;
+no warnings 'uninitialized';
+
+use Getopt::Long;
+use Mast::Deploy::Step;
+
+my ($aws_region, $cluster_name, $service_name, $docker_username, $docker_password,
+    $github_token, $output_file, @auth_tokens);
+
+GetOptions(
+  'region=s' => \$aws_region,
+  'cluster=s' => \$cluster_name,
+  'service=s' => \$service_name,
+  'docker-username=s' => \$docker_username,
+  'docker-password=s' => \$docker_password,
+  'github-token=s' => \$github_token,
+  'docker-registry-token=s' => \@auth_tokens,
+  'output-file=s' => \$output_file,
+)
+  or die "Error in command line arguments\n";
+
+die "Output file parameter is missing\n" unless length $output_file > 1;
+
+say "AWS region: $aws_region";
+say "ECS cluster: $cluster_name";
+say "ECS Service: $service_name";
+say "Docker hub username: $docker_username";
+say "Docker hub password: " . ($docker_password =~ s/./*/gr);
+say "Using " . (scalar @auth_tokens) . " Docker registry auth tokens";
+say "Github token: " . ($github_token =~ s/./*/gr);
+
+my ($service_spec_json, $spec_url) = Mast::Deploy::Step::get_service_spec_from_ecs_service(
+  aws_region => $aws_region,
+  cluster_name => $cluster_name,
+  service_name => $service_name,
+  docker_username => $docker_username,
+  docker_password => $docker_password,
+  docker_registry_tokens => \@auth_tokens,
+  github_token => $github_token,
+);
+
+say "Successfully retrieved service spec from $spec_url.";
+
+open my $fh, ">", $output_file or die "Cannot open $output_file for writing: $!";
+say $fh qq|export service_spec='$service_spec_json'|;
+say $fh qq|export service_spec_url='$spec_url'|;
+close $fh;
