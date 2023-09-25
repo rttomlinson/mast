@@ -1,0 +1,74 @@
+Parameters:
+  ECRPublicRepoLocation:
+    Description: "Location of the image to deploy"
+    Type: "String"
+    MinLength: 1 # pseudo required
+    # MaxLength: 255,
+    # AllowedPattern: "^[a-zA-Z][-a-zA-Z0-9]*$",
+    Default: "s1k9c2t7/mast-lambda:latest"
+  PolicyName:
+    Description: "policy name"
+    Type: "String"
+    MinLength: 1 # pseudo required
+    # MaxLength: 255,
+    # AllowedPattern: "^[a-zA-Z][-a-zA-Z0-9]*$",
+    Default: "default-step-function-lambda-role-policy"
+  RoleName:
+    Description: "role name"
+    Type: "String"
+    MinLength: 1 # pseudo required
+    # MaxLength: 255,
+    # AllowedPattern: "^[a-zA-Z][-a-zA-Z0-9]*$",
+    Default: "default-step-function-lambda-role"
+Resources:
+  defaultRolePolicy:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      ManagedPolicyName: !Ref PolicyName
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - "logs:CreateLogGroup"
+            Resource: "*"
+  defaultRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - states.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Description: "Default role used to invoke Lambdas from Step Function"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaRole"
+        - !Ref defaultRolePolicy
+      RoleName: !Ref RoleName
+      Tags:
+        - Key: "used_by"
+          Value: "mast"
+    DependsOn: "defaultRolePolicy"
+
+Outputs:
+  RoleArn:
+    Description: ARN of the role used by workflows
+    Value: !GetAtt defaultRole.Arn
+    Export:
+      {
+        "Name":
+          { "Fn::Sub": "${AWS::StackName}-RoleArn" },
+      }
+  PrivateECRMastLambdaLocation:
+    Description: "Call docker pull on this URI for initialize it"
+    Value: !Sub
+          - '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/ecr-public/${ECRPublicRepoLocation}' # !Ref ImageUri
+          - ECRPublicRepoLocation: !Ref ECRPublicRepoLocation
+
+  PrivateECRLoginCommand:
+    Description: "Just make it easier to call login for the account"
+    Value: !Sub 'aws ecr get-login-password --region ${AWS::Region} | docker login --username AWS --password-stdin ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com'

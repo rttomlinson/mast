@@ -1,0 +1,12 @@
+YAML_SPEC_INPUT_FILENAME?=service_spec.yaml
+JSON_SPEC_OUTPUT_FILENAME?=service_spec.json
+
+convert:
+	yq -o=json -I=2 ${YAML_SPEC_INPUT_FILENAME} > ${JSON_SPEC_OUTPUT_FILENAME}
+
+
+prepare: convert
+	jq -c 'del(.variables,.environments)' ${JSON_SPEC_OUTPUT_FILENAME} > temp-${JSON_SPEC_OUTPUT_FILENAME} && mv temp-${JSON_SPEC_OUTPUT_FILENAME} ${JSON_SPEC_OUTPUT_FILENAME}
+
+output: prepare
+	jq -Rsa . ${JSON_SPEC_OUTPUT_FILENAME}
