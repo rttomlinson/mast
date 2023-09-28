@@ -1,12 +1,12 @@
 # No slash at the end, please
-ARTIFACTORY_PREFIX := rttomlinson
+REPO_PREFIX := rttomlinson
 BASE_REPO := rttomlinson
 # We want to update the build-tools container image without producing
 # extra stdout output that might spoil the data output of the consequently
 # called command. `docker run --pull always` will print the pulled image
 # hash and there is no way to silence that, hence pull in a separate command.
-BUILD_TOOLS := docker pull -q $(ARTIFACTORY_PREFIX)/build-tools >/dev/null 2>&1; \
-               docker run --rm -i $(ARTIFACTORY_PREFIX)/build-tools
+BUILD_TOOLS := docker pull -q $(REPO_PREFIX)/build-tools >/dev/null 2>&1; \
+               docker run --rm -i $(REPO_PREFIX)/build-tools
 
 # This weird double assignment is to resolve the value instead of
 # calculating it at every call site
@@ -97,78 +97,78 @@ docker-push-all-%: docker-push-commit-% docker-push-tag-% docker-push-branch-%
 	@echo pushed all container tags
 
 docker-push-commit-%:
-	docker image push $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG)
+	docker image push $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG)
 	@echo pushed docker container $(BASE_REPO)/$*:$(GIT_COMMIT_TAG)
 
 docker-push-tag-%:
-	docker image push $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_TAG)
+	docker image push $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_TAG)
 	@echo pushed docker container $(BASE_REPO)/$*:$(GIT_TAG)
 
 docker-rollback-push-tag-%:
-	docker image push $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_ENV)-live
+	docker image push $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_ENV)-live
 	@echo pushed docker container $(BASE_REPO)/$*:$(GIT_ENV)-live	
 
 docker-push-branch-%:
-	docker image push $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_BRANCH)
+	docker image push $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_BRANCH)
 	@echo pushed docker container $(BASE_REPO)/$*:$(GIT_BRANCH)
 
 docker-push-latest-%:
-	docker image push $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:latest
+	docker image push $(REPO_PREFIX)/$(BASE_REPO)/$*:latest
 	@echo pushed docker container $(BASE_REPO)/$*:latest
 
 docker-tag-all-%:
 	@echo tagged docker container with all tags
 
 docker-tag-branch-%:
-	-docker image pull $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG)
-	docker image tag $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG) $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_BRANCH)
+	-docker image pull $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG)
+	docker image tag $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG) $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_BRANCH)
 	@echo tagged docker container $(BASE_REPO)$*:$(GIT_COMMIT_TAG) as $(BASE_REPO)/$*:$(GIT_BRANCH)
 
 docker-tag-gittag-%:
-	-docker image pull $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG)
-	docker image tag $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG) $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_TAG)
+	-docker image pull $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG)
+	docker image tag $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG) $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_TAG)
 	@echo tagged docker container $(BASE_REPO)$*:$(GIT_COMMIT_TAG) as $(BASE_REPO)/$*:$(GIT_TAG)
 
 docker-rollback-tag-gittag-%:
-	-docker image pull $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_ENV)-last-stable
-	docker image tag $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_ENV)-last-stable $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_ENV)-live
+	-docker image pull $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_ENV)-last-stable
+	docker image tag $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_ENV)-last-stable $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_ENV)-live
 	@echo tagged docker container $(BASE_REPO)$*:$(GIT_ENV)-last-stable as $(BASE_REPO)/$*:$(GIT_ENV)-live
 
 docker-commit-rollback-tag-gittag-%:
-	-docker image pull $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG)
-	docker image tag $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG) $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_ENV)-live
+	-docker image pull $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG)
+	docker image tag $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG) $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_ENV)-live
 	@echo tagged docker container $(BASE_REPO)$*:$(GIT_COMMIT_TAG) as $(BASE_REPO)/$*:$(GIT_ENV)-live
 
 docker-tag-latest-%:
-	-docker image pull $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG)
-	docker image tag $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG) $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:latest
+	-docker image pull $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG)
+	docker image tag $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG) $(REPO_PREFIX)/$(BASE_REPO)/$*:latest
 	@echo tagged docker container $(BASE_REPO)$*:$(GIT_COMMIT_TAG) as $(BASE_REPO)/$*:latest
 
 docker-tag-last-release-%:
-	-docker image pull $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_ENV)-live
-	docker image tag $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_ENV)-live $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_ENV)-last-stable
+	-docker image pull $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_ENV)-live
+	docker image tag $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_ENV)-live $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_ENV)-last-stable
 	@echo tagged docker container $(BASE_REPO)$*:$(GIT_ENV)-live as $(BASE_REPO)/$*:$(GIT_ENV)-last-stable
 
 docker-push-last-release-%:
-	docker image push $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_ENV)-last-stable
+	docker image push $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_ENV)-last-stable
 	@echo pushed docker container $(BASE_REPO)/$*:$(GIT_ENV)-last-stable
 
 docker-tag-version-%:
-	-docker image pull $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG)
-	docker image tag $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG) $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(BUILD_VERSION)
+	-docker image pull $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG)
+	docker image tag $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG) $(REPO_PREFIX)/$(BASE_REPO)/$*:$(BUILD_VERSION)
 	@echo tagged docker container $(BASE_REPO)/$*:$(GIT_COMMIT_TAG) as $(BASE_REPO)/$*:$(BUILD_VERSION)
 
 docker-push-version-%:
-	docker image push $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(BUILD_VERSION)
+	docker image push $(REPO_PREFIX)/$(BASE_REPO)/$*:$(BUILD_VERSION)
 	@echo pushed docker container $(BASE_REPO)/$*:$(BUILD_VERSION)
 
 docker-tag-pr-%:
-	-docker image pull $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG)
-	docker image tag $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG) $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GHPRB_ID_TAG)
+	-docker image pull $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG)
+	docker image tag $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GIT_COMMIT_TAG) $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GHPRB_ID_TAG)
 	@echo tagged docker container $(BASE_REPO)/$*:$(GIT_COMMIT_TAG) as $(BASE_REPO)/$*:$(GHPRB_ID_TAG)
 
 docker-push-pr-%:
-	docker image push $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$*:$(GHPRB_ID_TAG)
+	docker image push $(REPO_PREFIX)/$(BASE_REPO)/$*:$(GHPRB_ID_TAG)
 	@echo pushed docker container $(BASE_REPO)/$*:$(GHPRB_ID_TAG)
 
 docker-prune:
@@ -182,7 +182,7 @@ datadog-upload-sourcemap:
 			--env "DATADOG_API_KEY=$(DATADOG_API_KEY)" \
 			--entrypoint '' \
 			--rm \
-			$(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-nexus-build:$(GIT_COMMIT_TAG) \
+			$(REPO_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-nexus-build:$(GIT_COMMIT_TAG) \
 				npx --no-install @datadog/datadog-ci \
 					sourcemaps upload ./build/output/static \
 					--service=web \
@@ -198,7 +198,7 @@ run-dev: docker-network-setup
 		-e APP_ENDPOINT="nexus-dev.$(BASE_REPO).com" \
 		-e GRAPHQL_ENDPOINT="http://graphql:4000" \
 		-e SEGMENT_KEY="" \
-		$(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-nexus:$(GIT_COMMIT_TAG)
+		$(REPO_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-nexus:$(GIT_COMMIT_TAG)
 
 build-and-run: ui-build-dev ui-build-final run-dev
 
@@ -232,7 +232,7 @@ graphql-build-dev: graphql-clean graphql-prep
 	MAKEFILE=$$(cat Makefile) && \
 	docker image build --pull \
 		-f ./build/graphql/Dockerfile.dev \
-		-t $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-graphql-build:$(GIT_COMMIT_TAG) \
+		-t $(REPO_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-graphql-build:$(GIT_COMMIT_TAG) \
 			--label Makefile="$$MAKEFILE" \
 			--build-arg BUILD_VERSION=$(BUILD_VERSION) \
 				./build/graphql	
@@ -243,7 +243,7 @@ graphql-build-mock: graphql-clean graphql-prep
 	SERVICE_SPEC=$$(${GET_SERVICE_SPEC} < ${GRAPHQL_SERVICE_SPEC}) && \
 	docker image build \
 		-f ./build/graphql/Dockerfile.mock \
-		-t $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-graphql-mock:$(GIT_COMMIT_TAG) \
+		-t $(REPO_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-graphql-mock:$(GIT_COMMIT_TAG) \
 			--label git_repository="$(BASE_REPO)/frontend" \
 			--label git_branch=$(GIT_BRANCH) \
 			--label feature_branch_hostname=$(FEATURE_BRANCH_HOSTNAME) \
@@ -258,7 +258,7 @@ graphql-output: graphql-clean
 	mkdir -p ./build/graphql-output
 	docker container run --rm --entrypoint '' \
 		--volume ${PWD}/build/graphql-output:/build-output \
-		$(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-graphql-build:$(GIT_COMMIT_TAG) \
+		$(REPO_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-graphql-build:$(GIT_COMMIT_TAG) \
 			rsync -av \
 				--exclude='/node_modules/**' \
 				--exclude='/mock/**' \
@@ -273,7 +273,7 @@ graphql-build-final: graphql-clean graphql-prep graphql-output
 	SERVICE_SPEC=$$(${GET_SERVICE_SPEC} < ${GRAPHQL_SERVICE_SPEC}) && \
 	docker image build --pull \
 		-f ./build/graphql-output/Dockerfile.prod \
-		-t $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-graphql:$(GIT_COMMIT_TAG) \
+		-t $(REPO_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-graphql:$(GIT_COMMIT_TAG) \
 			--label git_branch=$(GIT_BRANCH) \
 			--label feature_branch_hostname=$(FEATURE_BRANCH_HOSTNAME) \
 			--label github_pr_id=$(GITHUB_PR_ID) \
@@ -288,7 +288,7 @@ graphql-lint:
 	mkdir -p ./build/graphql/testreports
 	docker container run --rm \
 		--volume ${PWD}/build/graphql/testreports:/app/testreports \
-		$(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-graphql-build:$(GIT_COMMIT_TAG) \
+		$(REPO_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-graphql-build:$(GIT_COMMIT_TAG) \
 			yarn lint-ci
 
 .PHONY: graphql-unit-test
@@ -296,7 +296,7 @@ graphql-unit-test:
 	mkdir -p ./build/graphql/testreports
 	docker container run --entrypoint '' --rm \
 		--volume ${PWD}/build/graphql/testreports:/app/testreports \
-		$(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-graphql-build:$(GIT_COMMIT_TAG) \
+		$(REPO_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-graphql-build:$(GIT_COMMIT_TAG) \
 			yarn test-ci
 		
 # Just an alias
@@ -311,7 +311,7 @@ graphql-run-dev: docker-network-setup
 		-e STAGE=dev \
 		-e GATEWAY_HOST="gateway-steelix.$(BASE_REPO).com" \
 		-e HTTP_CLIENT_TIMEOUT=120000 \
-		$(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-graphql:$(GIT_COMMIT_TAG)
+		$(REPO_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-graphql:$(GIT_COMMIT_TAG)
 
 .PHONY: graphql-run-mock
 graphql-run-mock: docker-network-setup graphql-build-mock
@@ -321,7 +321,7 @@ graphql-run-mock: docker-network-setup graphql-build-mock
 		-e STAGE=dev \
 		-e GATEWAY_HOST="gateway-steelix.$(BASE_REPO).com" \
 		-e HTTP_CLIENT_TIMEOUT=120000 \
-		$(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-graphql-mock:$(GIT_COMMIT_TAG)
+		$(REPO_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-graphql-mock:$(GIT_COMMIT_TAG)
 
 .PHONY: ui-clean
 ui-clean:
@@ -348,7 +348,7 @@ ui-build-dev: ui-clean ui-prep
 			./build/ui/cache
 	MAKEFILE=$$(cat Makefile) && \
 	docker image build --pull \
-		-t $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-nexus-build:$(GIT_COMMIT_TAG) \
+		-t $(REPO_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-nexus-build:$(GIT_COMMIT_TAG) \
 			--label Makefile="$$MAKEFILE" \
 			--build-arg BUILD_VERSION=$(BUILD_VERSION) \
 			--build-arg GITHUB_TOKEN=$(GITHUB_TOKEN) \
@@ -359,14 +359,14 @@ ui-build-dev: ui-clean ui-prep
 ui-lint: ui-prep
 	docker container run --entrypoint '' --rm \
 		--volume ${PWD}/build/ui/testreports:/app/testreports \
-		$(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-nexus-build:$(GIT_COMMIT_TAG) \
+		$(REPO_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-nexus-build:$(GIT_COMMIT_TAG) \
 			yarn lint-ci
 
 .PHONY: ui-unit-test
 ui-unit-test: ui-prep
 	docker container run --entrypoint '' --rm \
 	--volume ${PWD}/build/ui/testreports:/app/testreports \
-	$(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-nexus-build:$(GIT_COMMIT_TAG) \
+	$(REPO_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-nexus-build:$(GIT_COMMIT_TAG) \
 		yarn test-ci
 	
 # Just an alias
@@ -378,7 +378,7 @@ ui-output:
 	mkdir -p ./build/ui/output/cache
 	docker container run --rm --entrypoint '' \
 		--volume $(CWD)/build/ui/output/cache:/build \
-		$(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-nexus-build:$(GIT_COMMIT_TAG) \
+		$(REPO_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-nexus-build:$(GIT_COMMIT_TAG) \
 			rsync -av ./build/output/ /build/
 
 .PHONY: ui-build-final
@@ -390,7 +390,7 @@ ui-build-final: ui-output
 	MSG_2=$$(cat ${APPROVAL_MSG_2}) && \
 	MSG_3=$$(cat ${RELEASE_NOTIFICATION_MSG}) && \
 	docker image build --pull \
-		-t $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-nexus:$(GIT_COMMIT_TAG) \
+		-t $(REPO_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-nexus:$(GIT_COMMIT_TAG) \
 			--label git_repository="$(BASE_REPO)/frontend" \
 			--label git_branch=$(GIT_BRANCH) \
 			--label feature_branch_hostname=$(FEATURE_BRANCH_HOSTNAME) \
@@ -404,7 +404,7 @@ ui-build-final: ui-output
 			--label release_notification_msg="$$MSG_3" \
 			--build-arg BUILD_VERSION=$(BUILD_VERSION) \
 			--build-arg GITHUB_TOKEN=$(GITHUB_TOKEN) \
-			--build-arg ARTIFACTORY_PREFIX=$(ARTIFACTORY_PREFIX) \
+			--build-arg REPO_PREFIX=$(REPO_PREFIX) \
 				./build/ui/output
 
 .PHONY: ui-run-dev
@@ -418,7 +418,7 @@ ui-run-dev:
 		-e APP_ENDPOINT="nexus-dev.$(BASE_REPO).com" \
 		-e GRAPHQL_ENDPOINT="https://app.prestaging.$(BASE_REPO).com" \
 		-e SEGMENT_KEY="" \
-		$(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-nexus:$(GIT_COMMIT_TAG)
+		$(REPO_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-nexus:$(GIT_COMMIT_TAG)
 
 .PHONY: ui-run-local-graphql
 ui-run-local-graphql: docker-network-setup
@@ -432,7 +432,7 @@ ui-run-local-graphql: docker-network-setup
 		-e APP_ENDPOINT="nexus-dev.$(BASE_REPO).com" \
 		-e GRAPHQL_ENDPOINT="http://graphql:4000" \
 		-e SEGMENT_KEY="" \
-		$(ARTIFACTORY_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-nexus:$(GIT_COMMIT_TAG)
+		$(REPO_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-nexus:$(GIT_COMMIT_TAG)
 
 .PHONY: docker-network-setup
 docker-network-setup:
@@ -456,6 +456,20 @@ cypress-build: cypress-clean cypress-prep
 			./build/cypress
 	mv ./build/cypress/cypress/*.sh ./build/cypress/
 	docker image build --pull \
-		-t $(ARTIFACTORY_PREFIX)/$(BASE_REPO)/cypress-tests:$(GIT_COMMIT_TAG) \
+		-t $(REPO_PREFIX)/$(BASE_REPO)/cypress-tests:$(GIT_COMMIT_TAG) \
 			./build/cypress
 	make cypress-clean
+
+YAML_SPEC_INPUT_FILENAME?=green_service_spec.yaml
+JSON_SPEC_OUTPUT_FILENAME?=green_service_spec.json
+
+convert:
+        yq -o=json -I=2 ${YAML_SPEC_INPUT_FILENAME} > ${JSON_SPEC_OUTPUT_FILENAME}
+
+
+prepare: convert
+        jq -c 'del(.variables,.environments)' ${JSON_SPEC_OUTPUT_FILENAME} > temp-${JSON_SPEC_OUTPUT_FILENAME} && mv temp-${JSON_SPEC_OUTPUT_FILENAME} ${JSON_SPEC_OUTPUT_FILENAME}
+
+output: prepare
+        jq -Rsa . ${JSON_SPEC_OUTPUT_FILENAME}
+
