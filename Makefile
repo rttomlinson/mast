@@ -1,5 +1,5 @@
 # No slash at the end please
-REPO_PREFIX ?= myrepo
+REPO_PREFIX ?= rttomlinson
 DOCKER ?= docker
 
 .PHONY: build
@@ -21,3 +21,8 @@ push:
 .PHONY: local-quick
 local-quick:
 	$(DOCKER) build --pull --build-arg BUILD_OPTIONS='--notest' -t mast ./mast
+
+
+.PHONY: local-quick-lambda
+local-quick-lambda:
+	$(DOCKER) build --pull --build-arg BUILD_OPTIONS='--notest' -f mast/Dockerfile.lambda -t mast-lambda ./mast
