@@ -18,14 +18,14 @@ Resources:
       DefinitionString: 
         Fn::ToJsonString: {
           "Comment": "An AWS Step Functions state machine that triggers a rolling deploy for an ECS Fargate Service.",
-          "StartAt": "Validate Service Spec",
+          "StartAt": "Validate Cloud Spec",
           "States": {
-              "Validate Service Spec": {
+              "Validate Cloud Spec": {
                   "Type": "Task",
                   "Resource": !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:mast-lambda",
                   "Parameters": {
-                      "step_name": "validate_service_spec",
-                      "service_spec_json.$": "$.service_spec_json",
+                      "step_name": "validate_cloud_spec",
+                      "cloud_spec_json.$": "$.cloud_spec_json",
                       "environment.$": "$.environment",
                       "global_state.$": "$.global_state"
                   },
@@ -36,10 +36,10 @@ Resources:
                   "Resource": !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:mast-lambda",
                   "Parameters": {
                       "step_name": "lambda_create_ecs_task_definition",
-                      "service_spec_json.$": "$.service_spec_json",
+                      "cloud_spec_json.$": "$.cloud_spec_json",
                       "environment.$": "$.environment",
                       "output_file": "/tmp/deployment.json",
-                      "service_spec_url": "https://raw.githubusercontent.com/yahooo",
+                      "cloud_spec_url": "https://raw.githubusercontent.com/yahooo",
                       "global_state.$": "$.global_state"
                   },
                   "Next": "Update ECS Service"
@@ -49,7 +49,7 @@ Resources:
                   "Resource": !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:mast-lambda",
                   "Parameters": {
                       "step_name": "update_ecs_service",
-                      "service_spec_json.$": "$.service_spec_json",
+                      "cloud_spec_json.$": "$.cloud_spec_json",
                       "environment.$": "$.environment",
                       "poll_interval": 10,
                       "task_definition_arn.$": "$.global_state.task_definition_arn",

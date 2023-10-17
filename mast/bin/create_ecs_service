@@ -10,12 +10,12 @@ use JSON::PP;
 use Mast::Deploy::Step;
 
 my (
-  $service_spec_json, $task_definition_arn, $overrides_json,
+  $cloud_spec_json, $task_definition_arn, $overrides_json,
   $poll_interval, $output_file,
 );
 
 GetOptions(
-  'service-spec-json=s' => \$service_spec_json,
+  'cloud-spec-json=s' => \$cloud_spec_json,
   'task-definition-arn=s' => \$task_definition_arn,
   'service-overrides-json=s' => \$overrides_json,
   'poll-interval=i' => \$poll_interval,
@@ -28,7 +28,7 @@ die "Output file parameter is missing\n" unless length $output_file > 1;
 $poll_interval //= 10;
 
 say "Task definition ARN: $task_definition_arn";
-say "Service spec: $service_spec_json";
+say "Cloud spec: $cloud_spec_json";
 say "ECS service overrides JSON: $overrides_json";
 say "Poll interval (seconds): $poll_interval";
 
@@ -37,7 +37,7 @@ my $overrides = decode_json($overrides_json // '{}');
 
 my $service_arn = create_or_update_ecs_service(
   environment => "placeholder",
-  service_spec_json => $service_spec_json,
+  cloud_spec_json => $cloud_spec_json,
   task_definition_arn => $task_definition_arn,
   overrides => $overrides,
   poll_interval => $poll_interval,

@@ -9,7 +9,7 @@ use Carp 'confess';
 use parent 'Mast::Deploy::Base';
 
 use JSON::PP;
-use Mast::Service::Spec;
+use Mast::Cloud::Spec;
 use Mast::AWS::ECS::Service;
 use Mast::Deploy::ListenerRules;
 use Mast::AWS::ApplicationAutoscaling::ScalingPolicy;

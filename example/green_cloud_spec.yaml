@@ -1,4 +1,4 @@
-# Service specification for example.
+# Cloud specification for example.
 #
 # This document contains most if not all of the parameters we need to successfully deploy
 # the service. Most of the top level objects like `elb` and `ecs` are modeled after
@@ -41,7 +41,7 @@
 # respective values passed in command line to the tool we are using to validate and convert
 # service specs to JSON. See Makefile for details.
 
-# Service spec document version
+# Cloud spec document version
 version: "2.0"
 
 # The list of environments that we are using in our build tooling
@@ -53,11 +53,17 @@ environments: [prestaging, staging]
 # is also omitted from JSON spec output, however the references will be
 # expanded into actual values wherever they are referenced.
 variables:
+  ecsClusterName: &ecs_cluster_name_ref default
   ecsServiceName: &ecs_service_name_ref example1
 
   domainName: &domain_name_ref
-    prestaging: "default-application-lb-1288766839.us-east-1.elb.amazonaws.com"
+    prestaging:
+      standby:
+        "default-application-lb-23808159.us-east-1.elb.amazonaws.com"
+      active:
+        "default-application-lb-23808159.us-east-1.elb.amazonaws.com"
     staging: "example-lb-int-staging"
+  
 
   loadBalancerName: &load_balancer_name_ref
     prestaging: default-application-lb
@@ -71,24 +77,24 @@ variables:
     awsvpcConfiguration:
       # Max 16 security groups (quota increase request approved - Renzo Tomlinson. 16 is the limit)
       securityGroups:
-        prestaging: [sg-05ba7775ce86b0290]
+        prestaging: [sg-04f49b903b8016454]
         staging: [sg-0802e31816e48501a]
 
       # Max 16 subnets
       subnets:
-        prestaging: [subnet-05c774843ceeee2a2,subnet-0c1008c35f242bc4c]
+        prestaging: [subnet-012deb0d44febbac5,subnet-01c24436513ef20fd]
         staging:
           [subnet-1de9466b, subnet-4c3dfb14, subnet-e3c555de, subnet-60cf3d4a]
 
       assignPublicIp: DISABLED # or ENABLED #
 
   executionRoleArn: &execution_role_arn_ref
-    prestaging: "arn:aws:iam::131614948911:role/default-task-execution-role"
-    staging: "arn:aws:iam::131614948911:role/example_staging_ecs_TER"
+    prestaging: "arn:aws:iam::033115095740:role/default-task-execution-role"
+    staging: "arn:aws:iam::033115095740:role/example_staging_ecs_TER"
 
   taskRoleArn: &task_role_arn_ref
-    prestaging: "arn:aws:iam::131614948911:role/default-task-role"
-    staging: "arn:aws:iam::131614948911:role/example_staging_ecs_TR"
+    prestaging: "arn:aws:iam::033115095740:role/default-task-role"
+    staging: "arn:aws:iam::033115095740:role/example_staging_ecs_TR"
 
 aws:
   region: us-east-1
@@ -191,8 +197,8 @@ aws:
     # See https://docs.aws.amazon.com/cli/latest/reference/ecs/create-service.html
     service:
       cluster:
-        prestaging: default
-        staging: default
+        prestaging: *ecs_cluster_name_ref
+        staging: *ecs_cluster_name_ref
 
       # Usually ECS services are namespaced by cluster. If deploying all environments
       # to the same cluster, make sure to have a unique service name for each environment.

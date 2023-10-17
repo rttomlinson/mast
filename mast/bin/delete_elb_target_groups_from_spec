@@ -7,16 +7,16 @@ use warnings;
 use Getopt::Long;
 use Mast::Deploy::Step;
 
-my ($service_spec_json);
+my ($cloud_spec_json);
 
 GetOptions(
-  'service-spec-json=s' => \$service_spec_json,
+  'cloud-spec-json=s' => \$cloud_spec_json,
 )
   or die "Error in command line arguments\n";
 say "This is deprecated. Use delete_elb_target_groups";
-say "Service spec: $service_spec_json";
+say "Cloud spec: $cloud_spec_json";
 
 delete_elb_target_groups(
   environment => "placeholder",
-  service_spec_json => $service_spec_json,
+  cloud_spec_json => $cloud_spec_json,
 );

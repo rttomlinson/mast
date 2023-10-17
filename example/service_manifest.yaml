@@ -1,5 +1,5 @@
-service_spec:
-  # Service specification for example.
+cloud_spec:
+  # Cloud specification for example.
   #
   # This document contains most if not all of the parameters we need to successfully deploy
   # the service. Most of the top level objects like `elb` and `ecs` are modeled after
@@ -42,7 +42,7 @@ service_spec:
   # respective values passed in command line to the tool we are using to validate and convert
   # service specs to JSON. See Makefile for details.
 
-  # Service spec document version
+  # Cloud spec document version
   version: "2.0"
 
   # The list of environments that we are using in our build tooling
@@ -404,19 +404,19 @@ service_spec:
       body: '/buildVersion:[ ]+"${BUILD_VERSION}"/'
 
 deployment_spec:
-  StartAt: "Validate Service Spec"
+  StartAt: "Validate Cloud Spec"
   States:
-    Validate Service Spec:
+    Validate Cloud Spec:
       Type: "Task"
       # Resource: "function:mast-lambda"
       Parameters:
         {
-          "step_name": "contexts_validate_service_spec",
-          "service_spec_json.$": "$.service_spec_json",
+          "step_name": "contexts_validate_cloud_spec",
+          "cloud_spec_json.$": "$.cloud_spec_json",
           "context": ["prestaging", "standby"],
           "output_file": "/tmp/deployment.json",
         }
-      ResultPath: "standby_service_spec"
+      ResultPath: "standby_cloud_spec"
       Next: "Create ECS Task Definition"
 
     Create ECS Task Definition:
@@ -425,9 +425,9 @@ deployment_spec:
       Parameters:
         {
           "step_name": "contexts_lambda_create_ecs_task_definition",
-          "service_spec_json.$": "$.standby_service_spec.service_spec_json",
+          "cloud_spec_json.$": "$.standby_cloud_spec.cloud_spec_json",
           "output_file": "/tmp/deployment.json",
-          "service_spec_url": "https://raw.githubusercontent.com/yahooo",
+          "cloud_spec_url": "https://raw.githubusercontent.com/yahooo",
         }
       ResultPath: "ecs_task_definition"
       Next: "Create ELB Target Groups"
@@ -438,7 +438,7 @@ deployment_spec:
       Parameters:
         {
           "step_name": "contexts_create_elb_target_groups",
-          "service_spec_json.$": "$.standby_service_spec.service_spec_json",
+          "cloud_spec_json.$": "$.standby_cloud_spec.cloud_spec_json",
         }
       # ResultPath: "elb_target_groups"
       Next: "Update ELB Listener Rules"
@@ -449,7 +449,7 @@ deployment_spec:
       Parameters:
         {
           "step_name": "contexts_update_elb_listener_rules",
-          "service_spec_json.$": "$.standby_service_spec.service_spec_json",
+          "cloud_spec_json.$": "$.standby_cloud_spec.cloud_spec_json",
         }
       # ResultPath: "elb_listener_rules"
       Next: "Create ECS Service"
@@ -460,7 +460,7 @@ deployment_spec:
       Parameters:
         {
           "step_name": "contexts_lambda_create_ecs_service",
-          "service_spec_json.$": "$.standby_service_spec.service_spec_json",
+          "cloud_spec_json.$": "$.standby_cloud_spec.cloud_spec_json",
           "poll_interval": 10,
           "task_definition_arn.$": "$.ecs_task_definition.task_definition_arn",
           "output_file": "/tmp/deployment.json",

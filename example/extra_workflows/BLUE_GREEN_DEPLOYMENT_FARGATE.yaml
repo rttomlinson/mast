@@ -18,21 +18,21 @@ Resources:
       DefinitionString: 
         Fn::ToJsonString: {
             "Comment": "An AWS Step Functions state machine that performs a blue/green deploy for an ECS Fargate Service.",
-            "StartAt": "Validate Service Spec",
+            "StartAt": "Validate Cloud Spec",
             "States": {
-                "Validate Service Spec": {
+                "Validate Cloud Spec": {
                     "Type": "Task",
                     "Resource": !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:mast-lambda",
                     "Parameters": {
-                        "step_name": "contexts_validate_service_spec",
-                        "service_spec_json.$": "$.service_spec_json",
+                        "step_name": "contexts_validate_cloud_spec",
+                        "cloud_spec_json.$": "$.cloud_spec_json",
                         "context": [
                             "prestaging",
                             "standby"
                         ],
                         "output_file": "/tmp/deployment.json"
                     },
-                    "ResultPath": "$.standby_service_spec",
+                    "ResultPath": "$.standby_cloud_spec",
                     "Next": "Create ECS Task Definition"
                 },
                 "Create ECS Task Definition": {
@@ -40,10 +40,10 @@ Resources:
                     "Resource": !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:mast-lambda",
                     "Parameters": {
                         "step_name": "lambda_create_ecs_task_definition",
-                        "service_spec_json.$": "$.standby_service_spec.service_spec_json",
+                        "cloud_spec_json.$": "$.standby_cloud_spec.cloud_spec_json",
                         "environment.$": "$.environment",
                         "output_file": "/tmp/deployment.json",
-                        "service_spec_url": "https://raw.githubusercontent.com/yahooo"
+                        "cloud_spec_url": "https://raw.githubusercontent.com/yahooo"
                     },
                     "ResultPath": "$.ecs_task_definition",
                     "Next": "Create ELB Target Groups"
@@ -53,7 +53,7 @@ Resources:
                     "Resource": !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:mast-lambda",
                     "Parameters": {
                         "step_name": "create_elb_target_groups",
-                        "service_spec_json.$": "$.standby_service_spec.service_spec_json",
+                        "cloud_spec_json.$": "$.standby_cloud_spec.cloud_spec_json",
                         "environment.$": "$.environment"
                     },
                     "ResultPath": "$.elb_target_groups",
@@ -64,7 +64,7 @@ Resources:
                     "Resource": !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:mast-lambda",
                     "Parameters": {
                         "step_name": "update_elb_listener_rules",
-                        "service_spec_json.$": "$.standby_service_spec.service_spec_json",
+                        "cloud_spec_json.$": "$.standby_cloud_spec.cloud_spec_json",
                         "environment.$": "$.environment"
                     },
                     "ResultPath": "$.elb_listener_rules",
@@ -75,28 +75,28 @@ Resources:
                     "Resource": !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:mast-lambda",
                     "Parameters": {
                         "step_name": "lambda_create_ecs_service",
-                        "service_spec_json.$": "$.standby_service_spec.service_spec_json",
+                        "cloud_spec_json.$": "$.standby_cloud_spec.cloud_spec_json",
                         "environment.$": "$.environment",
                         "poll_interval": 10,
                         "task_definition_arn.$": "$.ecs_task_definition.task_definition_arn",
                         "output_file": "/tmp/deployment.json"
                     },
                     "ResultPath": "$.ecs_service",
-                    "Next": "Actualize active Service Spec"
+                    "Next": "Actualize active Cloud Spec"
                 },
-                "Actualize active Service Spec": {
+                "Actualize active Cloud Spec": {
                     "Type": "Task",
                     "Resource": !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:mast-lambda",
                     "Parameters": {
-                        "step_name": "contexts_validate_service_spec",
-                        "service_spec_json.$": "$.service_spec_json",
+                        "step_name": "contexts_validate_cloud_spec",
+                        "cloud_spec_json.$": "$.cloud_spec_json",
                         "context": [
                             "prestaging",
                             "active"
                         ],
                         "output_file": "/tmp/deployment.json"
                     },
-                    "ResultPath": "$.active_service_spec",
+                    "ResultPath": "$.active_cloud_spec",
                     "Next": "Update ELB Listener Rules to Active"
                 },
                 "Update ELB Listener Rules to Active": {
@@ -104,7 +104,7 @@ Resources:
                     "Resource": !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:mast-lambda",
                     "Parameters": {
                         "step_name": "update_elb_listener_rules",
-                        "service_spec_json.$": "$.active_service_spec.service_spec_json",
+                        "cloud_spec_json.$": "$.active_cloud_spec.cloud_spec_json",
                         "environment.$": "$.environment"
                     },
                     "ResultPath": "$.update_elb_listener_rules",

@@ -4,7 +4,7 @@ no warnings 'uninitialized';
 
 use Test::More;
 
-use Mast::Service::Spec 'collapser';
+use Mast::Cloud::Spec 'collapser';
 
 my $tests = eval join '', <DATA>;
 for my $test (@$tests) {

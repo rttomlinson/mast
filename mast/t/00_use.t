@@ -3,10 +3,10 @@ use Test::More tests => 21;
 use v5.030;
 use warnings;
 
-use_ok 'Mast::Service::Spec';
-use_ok 'Mast::Service::Spec::v1_0';
-use_ok 'Mast::Service::Metadata';
-use_ok 'Mast::Service::Verification';
+use_ok 'Mast::Cloud::Spec';
+use_ok 'Mast::Cloud::Spec::v1_0';
+use_ok 'Mast::Cloud::Metadata';
+use_ok 'Mast::Cloud::Verification';
 
 use_ok 'Mast::AWS::Fargate';
 use_ok 'Mast::AWS::ApplicationAutoscaling::ScalableTarget';

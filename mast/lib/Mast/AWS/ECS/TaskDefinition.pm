@@ -7,7 +7,7 @@ no warnings 'uninitialized';
 use Carp 'confess';
 use AWS::CLIWrapper;
 
-use Mast::Service::Metadata '$service_spec_url_tag';
+use Mast::Cloud::Metadata '$cloud_spec_url_tag';
 
 my @required = qw(
   family containerDefinitions executionRoleArn taskRoleArn requiresCompatibilities
@@ -52,7 +52,7 @@ sub describe {
 sub create {
   my ($self, %params) = @_;
 
-  my $spec_url = $params{service_spec_url};
+  my $spec_url = $params{cloud_spec_url};
 
   my %task_def_payload = (
     family => $self->{family},
@@ -64,7 +64,7 @@ sub create {
     taskRoleArn => $self->{taskRoleArn},
     networkMode => $self->{networkMode},
     volumes => $self->{volumes} // [],
-    $spec_url ? (tags => [{ key => $service_spec_url_tag, value => $spec_url }]) : (),
+    $spec_url ? (tags => [{ key => $cloud_spec_url_tag, value => $spec_url }]) : (),
   );
 
   my $res = $self->{aws}->ecs('register-task-definition', {

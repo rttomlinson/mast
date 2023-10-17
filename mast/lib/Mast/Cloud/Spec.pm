@@ -1,4 +1,4 @@
-package Mast::Service::Spec;
+package Mast::Cloud::Spec;
 
 use v5.030;
 use strictures 2;
@@ -14,21 +14,21 @@ our @EXPORT_OK = qw(collapser);
 sub new {
   my ($class, %arg) = @_;
 
-  # To make things a bit more readable, we've renamed service_spec argument
-  # to service_spec_json throughout the codebase. Just in case we've forgotten something,
+  # To make things a bit more readable, we've renamed cloud_spec argument
+  # to cloud_spec_json throughout the codebase. Just in case we've forgotten something,
   # error out when we see this argument name.
 
-  my ($spec_text, $contexts) = @arg{qw(service_spec_json contexts)};
+  my ($spec_text, $contexts) = @arg{qw(cloud_spec_json contexts)};
 
   my $parsed_spec = eval { decode_json $spec_text };
 
-  confess "Cannot parse service_spec: $@"
+  confess "Cannot parse cloud_spec: $@"
     if $@ and not $parsed_spec;
 
   my $version = delete $parsed_spec->{version};
   
   $contexts //= [];
-  confess "Cannot parse service_spec: $@"
+  confess "Cannot parse cloud_spec: $@"
     if $@ and not $parsed_spec;
 
 
@@ -62,9 +62,9 @@ sub new {
 }
 
 sub collapser {
-  my ($contexts, $service_spec) = @_;
+  my ($contexts, $cloud_spec) = @_;
 
-  my $collapsed_spec = $service_spec;
+  my $collapsed_spec = $cloud_spec;
 
   for my $context (@$contexts) {
     $collapsed_spec = collapse_value($context, $collapsed_spec);

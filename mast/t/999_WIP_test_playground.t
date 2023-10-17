@@ -4,7 +4,7 @@ use warnings;
 use File::Slurp;
 use JSON::PP;
 use Carp 'confess';
-use Mast::Service::Spec;
+use Mast::Cloud::Spec;
 use Test::More;
 use Test::Exception;
 # use Test::LectroTest;
@@ -61,32 +61,32 @@ sub reverse_normalize_value {
 # my $environment_gen = Elements('prestaging', 'staging', 'production');
 # # Generate invalid service specs and see if any pass
 
-# my $service_spec_json_gen = Gen {
-#     my $service_spec_from = eval read_file 't/data/want/service-spec-template.pm';
+# my $cloud_spec_json_gen = Gen {
+#     my $cloud_spec_from = eval read_file 't/data/want/service-spec-template.pm';
 
 #     # always skip the top level
-#     foreach my $key (sort(keys %{$service_spec_from})) {
-#         $service_spec_from->{$key} = reverse_normalize_value($service_spec_from->{$key});
+#     foreach my $key (sort(keys %{$cloud_spec_from})) {
+#         $cloud_spec_from->{$key} = reverse_normalize_value($cloud_spec_from->{$key});
 #     }
     
-#     my $service_spec_json = encode_json($service_spec_from);
-#     return $service_spec_json;
+#     my $cloud_spec_json = encode_json($cloud_spec_from);
+#     return $cloud_spec_json;
 # };
 
 # randomly drop an env value
 
 # use Data::Dumper;
-# my $service_spec_from = eval read_file 't/data/want/service-spec-template.pm';
+# my $cloud_spec_from = eval read_file 't/data/want/service-spec-template.pm';
 # # always skip the top level
-# foreach my $key (sort(keys %{$service_spec_from})) {
-#     $service_spec_from->{$key} = reverse_normalize_value($service_spec_from->{$key});
+# foreach my $key (sort(keys %{$cloud_spec_from})) {
+#     $cloud_spec_from->{$key} = reverse_normalize_value($cloud_spec_from->{$key});
 # }
-# # say Dumper($service_spec_from);
-# say Dumper(encode_json($service_spec_from));
+# # say Dumper($cloud_spec_from);
+# say Dumper(encode_json($cloud_spec_from));
 
 # Property {
-#     ##[ environment <- $environment_gen, service_spec_json <- $service_spec_json_gen ]##
-#     my $res = eval {Mast::Service::Spec->new(environment => $environment, service_spec_json => $service_spec_json,)};
+#     ##[ environment <- $environment_gen, cloud_spec_json <- $cloud_spec_json_gen ]##
+#     my $res = eval {Mast::Cloud::Spec->new(environment => $environment, cloud_spec_json => $cloud_spec_json,)};
 #     1;
 # }, name => "when a user attempts to use a Spec, it must have an a value for the environment provided" ;
 
@@ -94,18 +94,18 @@ for my $environment (@environments){
 #   my $test_data = $tests->{$test};
 #   my ($env, $spec_from, $want, $want_from) = @$test_data{qw(environment spec_from want want_from)};
   my $spec_from = "t/data/spec/test-missing-$environment-environment-values-tree.json";
-  my $service_spec = read_file $spec_from;
+  my $cloud_spec = read_file $spec_from;
 #   $want = eval read_file $want_from if not $want and $want_from;
 
 #   my $spec_obj = eval {
-#     Mast::Service::Spec->new(environment => $env, service_spec_json => $service_spec);
+#     Mast::Cloud::Spec->new(environment => $env, cloud_spec_json => $cloud_spec);
 #   };
   # Check that the stringified exception matches given regex
-  throws_ok { Mast::Service::Spec->new(environment => $environment, service_spec_json => $service_spec); } qr/value for $environment not found but was expected. you likely forgot to add it in your spec. this will likely result in an error during deployment./, 'missing value for environment';
+  throws_ok { Mast::Cloud::Spec->new(environment => $environment, cloud_spec_json => $cloud_spec); } qr/value for $environment not found but was expected. you likely forgot to add it in your spec. this will likely result in an error during deployment./, 'missing value for environment';
 #   is "$@", "", "$test new no exception";
-#   isa_ok $spec_obj, 'Mast::Service::Spec';
+#   isa_ok $spec_obj, 'Mast::Cloud::Spec';
   
-#   my $have = $spec_obj->service_spec;
+#   my $have = $spec_obj->cloud_spec;
 
 #   is_deeply $have, $want, "$test spec";
 }

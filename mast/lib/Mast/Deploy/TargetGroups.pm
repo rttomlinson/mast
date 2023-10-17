@@ -8,7 +8,7 @@ use Carp 'confess', 'cluck';
 
 use parent 'Mast::Deploy::Base';
 
-use Mast::Service::Spec;
+use Mast::Cloud::Spec;
 use Mast::AWS::ELB::TargetGroup;
 
 sub get_target_group_objects {

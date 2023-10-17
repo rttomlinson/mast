@@ -10,7 +10,7 @@ use JSON::PP;
 
 use parent 'Mast::Deploy::Base';
 
-use Mast::Service::Spec;
+use Mast::Cloud::Spec;
 use Mast::Deploy::Service;
 use Mast::Deploy::TargetGroups;
 use Mast::AWS::VPC::SecurityGroup;
@@ -87,37 +87,37 @@ sub check_if_service_and_target_groups_already_created {
 
 # Define what is blue_green readiness
 sub check_ecs_service_blue_green_deployment_readiness {
-  my ($self, $current_active_service_spec_json,) = @_;
+  my ($self, $current_active_cloud_spec_json,) = @_;
 
   my $poll_interval //= 10;
 
-  undef $current_active_service_spec_json if $current_active_service_spec_json eq '';
-  confess "current active service spec not found. this is required for this workflow." unless defined $current_active_service_spec_json;
+  undef $current_active_cloud_spec_json if $current_active_cloud_spec_json eq '';
+  confess "current active service spec not found. this is required for this workflow." unless defined $current_active_cloud_spec_json;
 
 
-  my $current_active_service_spec = Mast::Service::Spec->new(
+  my $current_active_cloud_spec = Mast::Cloud::Spec->new(
     environment => "placeholder",
-    service_spec_json => $current_active_service_spec_json,
+    cloud_spec_json => $current_active_cloud_spec_json,
   );
   my $current_active_service = Mast::Deploy::Service->new(
-    service_spec => $current_active_service_spec,
+    cloud_spec => $current_active_cloud_spec,
     poll_interval => $poll_interval,
   );
-  my $service_spec = $self->spec;
+  my $cloud_spec = $self->spec;
 
   # TODO - we pass in the current active service until we have the execution spec
   my %potential_errors = ();
   
   # compare cluster names
-  $potential_errors{cluster_names} = "cluster names don't match" if $current_active_service_spec->ecs->{service}->{cluster} ne $service_spec->ecs->{service}->{cluster};
+  $potential_errors{cluster_names} = "cluster names don't match" if $current_active_cloud_spec->ecs->{service}->{cluster} ne $cloud_spec->ecs->{service}->{cluster};
 
   # compare service names
-  $potential_errors{service_names} = "service names are matching" if $current_active_service_spec->ecs->{service}->{name} eq $service_spec->ecs->{service}->{name};
+  $potential_errors{service_names} = "service names are matching" if $current_active_cloud_spec->ecs->{service}->{name} eq $cloud_spec->ecs->{service}->{name};
 
   # compare target groups names
   # If no target groups in spec i.e. empty or undefined? then should be undefined
-  my $catgs = $current_active_service_spec->elb->{targetGroups};
-  my $ndtgs = $service_spec->elb->{targetGroups};
+  my $catgs = $current_active_cloud_spec->elb->{targetGroups};
+  my $ndtgs = $cloud_spec->elb->{targetGroups};
   if(defined $catgs and defined $ndtgs){
     # filter just for target group names and sort them
     my @catgs = sort(map { $_->{name} } @$catgs);
@@ -146,12 +146,12 @@ sub check_ecs_service_rolling_deploy_readiness {
   my $does_service_exist = $errors->{service_names};
   $potential_errors{service_name_not_found} = "service name in spec was not found" unless defined $does_service_exist;
 
-  my $service_spec = $self->spec;
+  my $cloud_spec = $self->spec;
   # if target_groups not null, check that the number matches
   my $existing_target_groups_count = $errors->{existing_target_groups_count};
   if(defined $existing_target_groups_count){
     # just check that it matches the number of target groups found in the spec
-    my $ndtgs = $service_spec->elb->{targetGroups};
+    my $ndtgs = $cloud_spec->elb->{targetGroups};
     # get count and compare
     my $ndtgs_count = @{$ndtgs};
     $potential_errors{target_groups} = "not all the target groups from the spec were found" if $ndtgs_count != $existing_target_groups_count;

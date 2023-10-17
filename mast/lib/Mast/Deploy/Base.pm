@@ -10,10 +10,10 @@ extends 'Mast::Base';
 has spec => (
   is => 'ro',
   required => 1,
-  init_arg => 'service_spec',
+  init_arg => 'cloud_spec',
   isa => sub {
-    die 'Expected Mast::Service::Spec object as "service_spec" parameter'
-      unless ref($_[0]) and $_[0]->isa('Mast::Service::Spec');
+    die 'Expected Mast::Cloud::Spec object as "cloud_spec" parameter'
+      unless ref($_[0]) and $_[0]->isa('Mast::Cloud::Spec');
   },
 );
 
@@ -28,7 +28,7 @@ around BUILDARGS => sub {
   my %args = scalar @params == 1 && 'HASH' eq ref($params[0]) ? %{$params[0]} : @params;
 
   if (not $args{aws_region}) {
-    $args{aws_region} = $args{service_spec}->aws_region;
+    $args{aws_region} = $args{cloud_spec}->aws_region;
   }
 
   return $class->$method(%args);

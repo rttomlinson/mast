@@ -1,4 +1,4 @@
-package Mast::Service::Metadata;
+package Mast::Cloud::Metadata;
 
 use v5.030;
 use warnings;
@@ -15,9 +15,9 @@ use MIME::Base64 'encode_base64';
 
 use Mast::AWS::ECS::Service;
 
-our @EXPORT_OK = qw($service_spec_url_tag);
+our @EXPORT_OK = qw($cloud_spec_url_tag);
 
-our $service_spec_url_tag = 'service_spec_url';
+our $cloud_spec_url_tag = 'cloud_spec_url';
 our $docker_hub_registry = 'registry-1.docker.io';
 
 sub new {
@@ -32,7 +32,7 @@ sub new {
     bless { aws => $aws, %params }, $class;
 }
 
-sub get_service_spec_from_active_service_cluster_tag {
+sub get_cloud_spec_from_active_service_cluster_tag {
     my ($self, %params) = @_;
 
     my $ecs_service_name = $self->get_ecs_service_name_from_active_service_cluster_tag(
@@ -40,11 +40,11 @@ sub get_service_spec_from_active_service_cluster_tag {
         $params{task_family},
     );
 
-    my ($service_spec_json, $spec_url, $task_definition_arn) = $self->get_service_spec_from_task_definition_tag_using_ecs_service_name(
+    my ($cloud_spec_json, $spec_url, $task_definition_arn) = $self->get_cloud_spec_from_task_definition_tag_using_ecs_service_name(
         service_name => $ecs_service_name,
         %params,
     );
-    return ($service_spec_json, $spec_url, $task_definition_arn);
+    return ($cloud_spec_json, $spec_url, $task_definition_arn);
 }
 
 sub check_if_tag_exists_on_cluster {
@@ -65,15 +65,15 @@ sub check_if_tag_exists_on_cluster {
     return scalar(@tags);
 }
 
-sub get_service_spec_from_task_definition_tag_using_ecs_service_name {
+sub get_cloud_spec_from_task_definition_tag_using_ecs_service_name {
     my ($self, %params) = @_;
     my ($cluster_name, $ecs_service_name) = @params{'cluster_name', 'service_name'};
 
     my $task_definition_arn = $self->get_task_definition_arn_from_ecs_service($cluster_name, $ecs_service_name);
     my $spec_url = $self->get_spec_url_from_task_definition_tags($task_definition_arn);
-    my $service_spec_json = get_service_spec_from_url($spec_url, %params);
+    my $cloud_spec_json = get_cloud_spec_from_url($spec_url, %params);
 
-    return ($service_spec_json, $spec_url, $task_definition_arn);
+    return ($cloud_spec_json, $spec_url, $task_definition_arn);
 }
 
 sub get_ecs_service_name_from_active_service_cluster_tag {
@@ -128,8 +128,8 @@ sub get_spec_url_from_task_definition_tags {
         ($res->{taskDefinition}, $res->{tags},);
     };
     
-    say "Searching for the $service_spec_url_tag tag on the task definition with arn $task_definition_arn.";
-    my @filtered_task_definition_tags = grep { $_->{key} eq $service_spec_url_tag } @{$task_definition_tags};
+    say "Searching for the $cloud_spec_url_tag tag on the task definition with arn $task_definition_arn.";
+    my @filtered_task_definition_tags = grep { $_->{key} eq $cloud_spec_url_tag } @{$task_definition_tags};
 
     return undef unless @filtered_task_definition_tags;
 
@@ -148,7 +148,7 @@ sub get_image_configuration_from_spec_url {
     return get_image_configuration_from_docker_reference($image_reference, %params);
 }
 
-sub get_service_spec_from_url {
+sub get_cloud_spec_from_url {
     my ($spec_url, %params) = @_;
 
     if ($spec_url =~ m|^docker://|) {
@@ -157,10 +157,10 @@ sub get_service_spec_from_url {
         my $image_configuration
             = get_image_configuration_from_docker_reference($image_reference, %params);
         
-        return $image_configuration->{Labels}->{service_spec};
+        return $image_configuration->{Labels}->{cloud_spec};
     }
     elsif ($spec_url =~ m|https://.*github|) {
-        return get_service_spec_from_github_url($spec_url, %params);
+        return get_cloud_spec_from_github_url($spec_url, %params);
     }
     else {
         confess "Unsupported service spec URL: $spec_url";
@@ -180,7 +180,7 @@ sub get_image_configuration_from_docker_reference {
     return $image_configuration;
 }
 
-sub get_service_spec_from_github_url {
+sub get_cloud_spec_from_github_url {
     my ($spec_url, %params) = @_;
     my ($github_token) = $params{github_token};
 

@@ -1,10 +1,10 @@
-package Mast::Service::Spec::v1_0;
+package Mast::Cloud::Spec::v1_0;
 
 use v5.030;
 use strictures 2;
 no warnings 'uninitialized';
 
-use parent 'Mast::Service::Spec';
+use parent 'Mast::Cloud::Spec';
 
 use Carp 'confess';
 use Scalar::Util 'looks_like_number';
@@ -899,7 +899,7 @@ sub _normalize_ecs_task {
 
 # AWS region is special and as such warrants a getter
 sub aws_region { shift->{spec}->{aws}->{region} }
-sub service_spec { shift->{spec} }
+sub cloud_spec { shift->{spec} }
 sub deploy { shift->{spec}->{deploy} }
 sub elb { shift->{spec}->{aws}->{elb} }
 sub ecs { shift->{spec}->{aws}->{ecs} }

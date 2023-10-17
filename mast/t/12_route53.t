@@ -6,17 +6,17 @@ use File::Slurp;
 use JSON::PP;
 use UUID::Random;
 
-use Mast::Service::Spec;
+use Mast::Cloud::Spec;
 use Mast::Deploy::DNS;
 
 use lib 't/lib';
 use AWS::MockCLIWrapper;
 
-my $service_spec_json = read_file "t/data/spec/bar-baz-v1_0.json";
+my $cloud_spec_json = read_file "t/data/spec/bar-baz-v1_0.json";
 my $contexts = ["staging", "standby"];
-my $service_spec_obj = Mast::Service::Spec->new(
+my $cloud_spec_obj = Mast::Cloud::Spec->new(
   contexts => $contexts,
-  service_spec_json => $service_spec_json,
+  cloud_spec_json => $cloud_spec_json,
 );
 
 my ($zones, $load_balancers, %records, %changes);
@@ -153,7 +153,7 @@ my $aws = AWS::MockCLIWrapper->new(
 
 my $step = Mast::Deploy::DNS->new(
   aws => $aws,
-  service_spec => $service_spec_obj,
+  cloud_spec => $cloud_spec_obj,
   poll_interval => 0,
   log => sub {},
 );
@@ -185,7 +185,7 @@ my $want_recordset = {
 }
 
 {
-  $service_spec_obj->{spec}->{aws}->{route53}->[0]->{allowExisting} = JSON::PP::true;
+  $cloud_spec_obj->{spec}->{aws}->{route53}->[0]->{allowExisting} = JSON::PP::true;
 
   eval { $step->create_dns_records };
 

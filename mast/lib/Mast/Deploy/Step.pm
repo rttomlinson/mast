@@ -8,9 +8,9 @@ use Exporter 'import';
 use JSON::PP;
 use Scalar::Util 'looks_like_number';
 
-use Mast::Service::Spec;
-use Mast::Service::Metadata;
-use Mast::Service::Verification;
+use Mast::Cloud::Spec;
+use Mast::Cloud::Metadata;
+use Mast::Cloud::Verification;
 use Mast::Deploy::Listeners;
 use Mast::Deploy::ExecutionPlan;
 use Mast::Deploy::TaskDefinition;
@@ -21,10 +21,10 @@ use Mast::AWS::ECS::Task;
 use Mast::AWS::ECS::Service;
 
 our @EXPORT = qw(
-    get_image_configuration_from_service_spec_url
-    get_service_spec_from_service_spec_url
-    validate_service_spec
-    get_service_spec_from_active_service_cluster_tag
+    get_image_configuration_from_cloud_spec_url
+    get_cloud_spec_from_cloud_spec_url
+    validate_cloud_spec
+    get_cloud_spec_from_active_service_cluster_tag
     check_if_active_service_found_on_cluster_for_given_task_definition_family_name
     check_blue_green_readiness
     check_ecs_service_rolling_deploy_readiness
@@ -49,82 +49,82 @@ our @EXPORT = qw(
     delete_route53_records
 );
 
-sub get_image_configuration_from_service_spec_url {
+sub get_image_configuration_from_cloud_spec_url {
     my %params = @_;
 
-    return Mast::Service::Metadata::get_image_configuration_from_spec_url(
-        $params{service_spec_url},
+    return Mast::Cloud::Metadata::get_image_configuration_from_spec_url(
+        $params{cloud_spec_url},
         %params,
     );
 }
 
-sub get_service_spec_from_service_spec_url {
+sub get_cloud_spec_from_cloud_spec_url {
     my %params = @_;
 
-    return Mast::Service::Metadata::get_service_spec_from_url(
-        $params{service_spec_url},
+    return Mast::Cloud::Metadata::get_cloud_spec_from_url(
+        $params{cloud_spec_url},
         %params,
     );
 }
 
-sub validate_service_spec {
-    my $spec = Mast::Service::Spec->new(@_);
+sub validate_cloud_spec {
+    my $spec = Mast::Cloud::Spec->new(@_);
 
     return $spec;
 }
 
-sub get_service_spec_from_ecs_service {
+sub get_cloud_spec_from_ecs_service {
     my %params = @_;
 
-    my $meta = Mast::Service::Metadata->new(aws_region => $params{aws_region});
+    my $meta = Mast::Cloud::Metadata->new(aws_region => $params{aws_region});
 
-    return $meta->get_service_spec_from_task_definition_tag_using_ecs_service_name(%params);
+    return $meta->get_cloud_spec_from_task_definition_tag_using_ecs_service_name(%params);
 }
 
 # This one expects that the `active-<family-name>` tag on the cluster is a ecs service name
-# this ecs service name value is then used to look up the `service_spec_url` tag on the corresponding
+# this ecs service name value is then used to look up the `cloud_spec_url` tag on the corresponding
 # task definition (including revision) for where to find the actual service spec that was used to create
 # these resources. url is either docker:// or github:// at the time of this writing
-sub get_service_spec_from_active_service_cluster_tag {
+sub get_cloud_spec_from_active_service_cluster_tag {
     my %params = @_;
 
-    my ($contexts, $service_spec_json) = @params{qw(contexts service_spec_json)};
+    my ($contexts, $cloud_spec_json) = @params{qw(contexts cloud_spec_json)};
 
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
-    my $cluster_name = $service_spec->ecs->{service}->{cluster};
-    my $task_family = $service_spec->ecs->{taskDefinition}->{family};
-    my $metadata_service = Mast::Service::Metadata->new(
-        aws_region => $service_spec->aws_region,
+    my $cluster_name = $cloud_spec->ecs->{service}->{cluster};
+    my $task_family = $cloud_spec->ecs->{taskDefinition}->{family};
+    my $metadata_service = Mast::Cloud::Metadata->new(
+        aws_region => $cloud_spec->aws_region,
     );
 
-    my ($current_active_service_spec_json, $spec_url) = $metadata_service->get_service_spec_from_active_service_cluster_tag(
+    my ($current_active_cloud_spec_json, $spec_url) = $metadata_service->get_cloud_spec_from_active_service_cluster_tag(
         cluster_name => $cluster_name,
         task_family => $task_family,
         %params,
     );
 
-    return ($current_active_service_spec_json, $spec_url);
+    return ($current_active_cloud_spec_json, $spec_url);
 }
 
 sub check_if_active_service_found_on_cluster_for_given_task_definition_family_name {
     my %params = @_;
 
-    my ($service_spec_json,)
-        = @params{qw(service_spec_json)};
+    my ($cloud_spec_json,)
+        = @params{qw(cloud_spec_json)};
 
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
-    my $cluster_name = $service_spec->ecs->{service}->{cluster};
-    my $task_family = $service_spec->ecs->{taskDefinition}->{family};
-    my $metadata_service = Mast::Service::Metadata->new(
-        aws_region => $service_spec->aws_region,
+    my $cluster_name = $cloud_spec->ecs->{service}->{cluster};
+    my $task_family = $cloud_spec->ecs->{taskDefinition}->{family};
+    my $metadata_service = Mast::Cloud::Metadata->new(
+        aws_region => $cloud_spec->aws_region,
     );
 
     return $metadata_service->check_if_tag_exists_on_cluster(
@@ -136,19 +136,19 @@ sub check_if_active_service_found_on_cluster_for_given_task_definition_family_na
 
 sub check_ecs_service_rolling_deploy_readiness {
     my %params = @_;
-    my ($service_spec_json) = @params{qw(contexts service_spec_json)};
+    my ($cloud_spec_json) = @params{qw(contexts cloud_spec_json)};
 
     # confess "contexts not found. this is required for this workflow." unless defined $contexts;
-    confess "service_spec not found. this is required for this workflow." unless defined $service_spec_json;
+    confess "cloud_spec not found. this is required for this workflow." unless defined $cloud_spec_json;
 
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
     my $plan = Mast::Deploy::ExecutionPlan->new(
-        aws_region => $service_spec->aws_region,
-        service_spec => $service_spec,
+        aws_region => $cloud_spec->aws_region,
+        cloud_spec => $cloud_spec,
     );
     my $potential_errors = $plan->check_ecs_service_rolling_deploy_readiness;
     my %potential_errors = %{$potential_errors};
@@ -166,24 +166,24 @@ sub check_ecs_service_rolling_deploy_readiness {
 sub check_blue_green_readiness {
     my %params = @_;
     
-    my ($contexts, $service_spec_json, $current_active_service_spec_json)
-        = @params{qw(contexts service_spec_json current_active_service_spec_json)};
+    my ($contexts, $cloud_spec_json, $current_active_cloud_spec_json)
+        = @params{qw(contexts cloud_spec_json current_active_cloud_spec_json)};
 
     $contexts //= [];
-    confess "service_spec not found. this is required for this workflow." unless defined $service_spec_json;
-    confess "current_active_service_spec_json not found. this is required for this workflow." unless defined $current_active_service_spec_json;
+    confess "cloud_spec not found. this is required for this workflow." unless defined $cloud_spec_json;
+    confess "current_active_cloud_spec_json not found. this is required for this workflow." unless defined $current_active_cloud_spec_json;
 
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
     my $plan = Mast::Deploy::ExecutionPlan->new(
-        aws_region => $service_spec->aws_region,
-        service_spec => $service_spec,
+        aws_region => $cloud_spec->aws_region,
+        cloud_spec => $cloud_spec,
     );
 
-    my $potential_errors = $plan->check_ecs_service_blue_green_deployment_readiness($current_active_service_spec_json, $contexts);
+    my $potential_errors = $plan->check_ecs_service_blue_green_deployment_readiness($current_active_cloud_spec_json, $contexts);
     my %potential_errors = %{$potential_errors};
 
     my @keys = keys %potential_errors;
@@ -200,16 +200,16 @@ sub check_blue_green_readiness {
 sub check_if_service_and_target_groups_already_exist {
     my %params = @_;
 
-    my ($contexts, $service_spec_json) = @params{qw(contexts service_spec_json)};
+    my ($contexts, $cloud_spec_json) = @params{qw(contexts cloud_spec_json)};
 
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
     my $plan = Mast::Deploy::ExecutionPlan->new(
-        aws_region => $service_spec->aws_region,
-        service_spec => $service_spec,
+        aws_region => $cloud_spec->aws_region,
+        cloud_spec => $cloud_spec,
     );
 
     my ($errors, $output) = $plan->check_if_service_and_target_groups_already_created;
@@ -228,21 +228,21 @@ sub check_if_service_and_target_groups_already_exist {
 sub create_ecs_task_definition {
     my %params = @_;
 
-    my ($contexts, $service_spec_json, $service_spec_url)
-        = @params{qw(contexts service_spec_json service_spec_url)};
+    my ($contexts, $cloud_spec_json, $cloud_spec_url)
+        = @params{qw(contexts cloud_spec_json cloud_spec_url)};
     
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
     my $deploy_step = Mast::Deploy::TaskDefinition->new(
-        service_spec => $service_spec,
+        cloud_spec => $cloud_spec,
     );
 
     # TODO: validate url formats
     my $task_definition_arn = $deploy_step->create_task_definition(
-        service_spec_url => $service_spec_url,
+        cloud_spec_url => $cloud_spec_url,
     );
 
     return $task_definition_arn;
@@ -251,16 +251,16 @@ sub create_ecs_task_definition {
 sub create_elb_target_groups {
     my %params = @_;
 
-    my ($contexts, $service_spec_json)
-        = @params{qw(contexts service_spec_json)};
+    my ($contexts, $cloud_spec_json)
+        = @params{qw(contexts cloud_spec_json)};
 
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
     my $deploy_step = Mast::Deploy::TargetGroups->new(
-        service_spec => $service_spec,
+        cloud_spec => $cloud_spec,
     );
 
     my @created = $deploy_step->create_target_groups;
@@ -274,16 +274,16 @@ sub create_elb_target_groups {
 sub tag_elb_target_groups {
     my %params = @_;
 
-    my ($contexts, $service_spec_json, $tags)
-        = @params{qw(contexts service_spec_json tags)};
+    my ($contexts, $cloud_spec_json, $tags)
+        = @params{qw(contexts cloud_spec_json tags)};
     
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
     my $deploy_step = Mast::Deploy::TargetGroups->new(
-        service_spec => $service_spec,
+        cloud_spec => $cloud_spec,
     );
 
     return $deploy_step->tag_target_groups(tags => $tags);
@@ -292,16 +292,16 @@ sub tag_elb_target_groups {
 sub update_elb_listener_rules {
     my %params = @_;
 
-    my ($contexts, $service_spec_json, $rule_role)
-        = @params{qw(contexts service_spec_json rule_role)};
+    my ($contexts, $cloud_spec_json, $rule_role)
+        = @params{qw(contexts cloud_spec_json rule_role)};
 
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
     my $deploy_step = Mast::Deploy::ListenerRules->new(
-        service_spec => $service_spec,
+        cloud_spec => $cloud_spec,
     );
 
     return $deploy_step->update_listener_rules($rule_role);
@@ -310,16 +310,16 @@ sub update_elb_listener_rules {
 sub update_elb_listeners {
     my %params = @_;
 
-    my ($contexts, $service_spec_json)
-        = @params{qw(contexts service_spec_json)};
+    my ($contexts, $cloud_spec_json)
+        = @params{qw(contexts cloud_spec_json)};
 
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
     my $deploy_step = Mast::Deploy::Listeners->new(
-        service_spec => $service_spec,
+        cloud_spec => $cloud_spec,
     );
 
     return $deploy_step->update_listeners;
@@ -328,16 +328,16 @@ sub update_elb_listeners {
 sub delete_elb_listeners {
     my %params = @_;
 
-    my ($contexts, $service_spec_json)
-        = @params{qw(contexts service_spec_json)};
+    my ($contexts, $cloud_spec_json)
+        = @params{qw(contexts cloud_spec_json)};
 
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
     my $deploy_step = Mast::Deploy::Listeners->new(
-        service_spec => $service_spec,
+        cloud_spec => $cloud_spec,
     );
 
     return $deploy_step->delete_listeners;
@@ -346,20 +346,20 @@ sub delete_elb_listeners {
 sub create_or_update_ecs_service {
     my %params = @_;
 
-    my ($contexts, $service_spec_json, $task_definition_arn,
+    my ($contexts, $cloud_spec_json, $task_definition_arn,
         $overrides, $poll_interval)
-        = @params{qw(contexts service_spec_json task_definition_arn
+        = @params{qw(contexts cloud_spec_json task_definition_arn
                      overrides poll_interval)};
 
     $poll_interval = $poll_interval // 10;
 
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
     my $deploy_step = Mast::Deploy::Service->new(
-        service_spec => $service_spec,
+        cloud_spec => $cloud_spec,
         poll_interval => $poll_interval,
     );
 
@@ -372,16 +372,16 @@ sub create_or_update_ecs_service {
 sub tag_ecs_service {
     my %params = @_;
 
-    my ($contexts, $service_spec_json, $tags)
-        = @params{qw(contexts service_spec_json tags)};
+    my ($contexts, $cloud_spec_json, $tags)
+        = @params{qw(contexts cloud_spec_json tags)};
     
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
     my $deploy_step = Mast::Deploy::Service->new(
-        service_spec => $service_spec,
+        cloud_spec => $cloud_spec,
     );
 
     return $deploy_step->tag_ecs_service(tags => $tags);
@@ -390,37 +390,37 @@ sub tag_ecs_service {
 sub scale_ecs_service {
     my %params = @_;
 
-    my ($contexts, $service_spec_json, $desired_count,
-        $current_active_service_spec_json, $poll_interval)
-        = @params{qw(contexts service_spec_json desired_count
-                     current_active_service_spec_json poll_interval)};
+    my ($contexts, $cloud_spec_json, $desired_count,
+        $current_active_cloud_spec_json, $poll_interval)
+        = @params{qw(contexts cloud_spec_json desired_count
+                     current_active_cloud_spec_json poll_interval)};
     
     $poll_interval = $poll_interval // 10;
 
-    undef $current_active_service_spec_json if $current_active_service_spec_json eq '';
+    undef $current_active_cloud_spec_json if $current_active_cloud_spec_json eq '';
     undef $desired_count unless looks_like_number $desired_count;
 
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
     my $current_active_service = undef;
 
-    if(defined $current_active_service_spec_json){
-        my $current_active_service_spec = Mast::Service::Spec->new(
+    if(defined $current_active_cloud_spec_json){
+        my $current_active_cloud_spec = Mast::Cloud::Spec->new(
             contexts => [],
-            service_spec_json => $current_active_service_spec_json,
+            cloud_spec_json => $current_active_cloud_spec_json,
         );
 
         $current_active_service = Mast::Deploy::Service->new(
-            service_spec => $current_active_service_spec,
+            cloud_spec => $current_active_cloud_spec,
             poll_interval => $poll_interval,
         );
     }
 
     my $deploy_step = Mast::Deploy::Service->new(
-        service_spec => $service_spec,
+        cloud_spec => $cloud_spec,
         poll_interval => $poll_interval,
     );
 
@@ -433,15 +433,15 @@ sub scale_ecs_service {
 
 sub verify_service {
     my %params = @_;
-    my ($contexts, $service_spec_json) = @params{'contexts', 'service_spec_json'};
+    my ($contexts, $cloud_spec_json) = @params{'contexts', 'cloud_spec_json'};
 
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
-    my $verificator = Mast::Service::Verification->new(
-        service_spec => $service_spec,
+    my $verificator = Mast::Cloud::Verification->new(
+        cloud_spec => $cloud_spec,
     );
 
     $verificator->verify_service;
@@ -450,18 +450,18 @@ sub verify_service {
 sub register_service_as_scalable_target_and_attach_scaling_policy {
     my %params = @_;
 
-    my ($contexts, $service_spec_json, $poll_interval)
-        = @params{qw(contexts service_spec_json poll_interval)};
+    my ($contexts, $cloud_spec_json, $poll_interval)
+        = @params{qw(contexts cloud_spec_json poll_interval)};
 
     $poll_interval //= 10;
 
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
     my $deploy_step = Mast::Deploy::Service->new(
-        service_spec => $service_spec,
+        cloud_spec => $cloud_spec,
         poll_interval => $poll_interval,
     );
 
@@ -479,16 +479,16 @@ sub register_service_as_scalable_target_and_attach_scaling_policy {
 
 sub update_current_active_service_tag_on_cluster {
     my %params = @_;
-    my ($contexts, $service_spec_json)
-        = @params{qw(contexts service_spec_json)};
+    my ($contexts, $cloud_spec_json)
+        = @params{qw(contexts cloud_spec_json)};
 
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
     my $deploy_step = Mast::Deploy::Service->new(
-        service_spec => $service_spec,
+        cloud_spec => $cloud_spec,
     );
 
     # TODO: More descriptive type of tagging
@@ -498,16 +498,16 @@ sub update_current_active_service_tag_on_cluster {
 sub delete_elb_listener_rules {
     my %params = @_;
 
-    my ($contexts, $service_spec_json, $rule_role)
-        = @params{qw(contexts service_spec_json rule_role)};
+    my ($contexts, $cloud_spec_json, $rule_role)
+        = @params{qw(contexts cloud_spec_json rule_role)};
 
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
     my $deploy_step = Mast::Deploy::ListenerRules->new(
-        service_spec => $service_spec,
+        cloud_spec => $cloud_spec,
     );
 
     return $deploy_step->delete_listener_rules($rule_role);
@@ -516,16 +516,16 @@ sub delete_elb_listener_rules {
 sub delete_elb_target_groups {
     my %params = @_;
 
-    my ($contexts, $service_spec_json)
-        = @params{qw(contexts service_spec_json)};
+    my ($contexts, $cloud_spec_json)
+        = @params{qw(contexts cloud_spec_json)};
 
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
     my $deploy_step = Mast::Deploy::TargetGroups->new(
-        service_spec => $service_spec,
+        cloud_spec => $cloud_spec,
     );
 
     return $deploy_step->delete_target_groups_with_spec;
@@ -534,18 +534,18 @@ sub delete_elb_target_groups {
 sub deregister_service_as_scalable_target_and_delete_scaling_policy {
     my %params = @_;
 
-    my ($contexts, $service_spec_json, $poll_interval)
-        = @params{qw(contexts service_spec_json poll_interval)};
+    my ($contexts, $cloud_spec_json, $poll_interval)
+        = @params{qw(contexts cloud_spec_json poll_interval)};
 
     $poll_interval = $poll_interval // 10;
 
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
     my $deploy_step = Mast::Deploy::Service->new(
-        service_spec => $service_spec,
+        cloud_spec => $cloud_spec,
         poll_interval => $poll_interval,
     );
 
@@ -558,19 +558,19 @@ sub deregister_service_as_scalable_target_and_delete_scaling_policy {
 sub delete_ecs_service {
     my %params = @_;
 
-    my ($contexts, $service_spec_json, $poll_interval)
-        = delete @params{qw(contexts service_spec_json poll_interval)};
+    my ($contexts, $cloud_spec_json, $poll_interval)
+        = delete @params{qw(contexts cloud_spec_json poll_interval)};
 
     confess "service spec not found. this is required for this step."
-        unless defined $service_spec_json and $service_spec_json ne '';
+        unless defined $cloud_spec_json and $cloud_spec_json ne '';
 
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
     my $deploy_step = Mast::Deploy::Service->new(
-        service_spec => $service_spec,
+        cloud_spec => $cloud_spec,
         poll_interval => $poll_interval,
     );
 
@@ -580,15 +580,15 @@ sub delete_ecs_service {
 sub run_test {
     my %params = @_;
 
-    my ($contexts, $service_spec_json, $test_name, $poll_interval)
-        = @params{qw(contexts service_spec_json test_name poll_interval)};
+    my ($contexts, $cloud_spec_json, $test_name, $poll_interval)
+        = @params{qw(contexts cloud_spec_json test_name poll_interval)};
     
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
-    my $test = $service_spec->tests->{$test_name};
+    my $test = $cloud_spec->tests->{$test_name};
 
     confess "Cannot find test definition for $test_name"
         unless $test;
@@ -596,7 +596,7 @@ sub run_test {
     my $ecs_task = $test->{ecsTask};
     
     return execute_ecs_task(
-        aws_region => $service_spec->aws_region,
+        aws_region => $cloud_spec->aws_region,
         ecs_task => $ecs_task,
         poll_interval => $poll_interval,
     );
@@ -605,21 +605,21 @@ sub run_test {
 sub run_ecs_task {
     my %params = @_;
 
-    my ($contexts, $service_spec_json, $task_name, $poll_interval)
-        = @params{qw(contexts service_spec_json task_name poll_interval)};
+    my ($contexts, $cloud_spec_json, $task_name, $poll_interval)
+        = @params{qw(contexts cloud_spec_json task_name poll_interval)};
     
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
-    my $task_spec = $service_spec->ecs->{tasks}->{$task_name};
+    my $task_spec = $cloud_spec->ecs->{tasks}->{$task_name};
 
     confess "Cannot find ECS task specification for $task_name"
         unless $task_spec;
     
     return execute_ecs_task(
-        aws_region => $service_spec->aws_region,
+        aws_region => $cloud_spec->aws_region,
         ecs_task => $task_spec,
         poll_interval => $poll_interval,
     );
@@ -686,16 +686,16 @@ sub execute_ecs_task {
 sub update_ecs_service {
     my %params = @_;
 
-    my ($contexts, $service_spec_json, $poll_interval)
-        = delete @params{qw(contexts service_spec_json poll_interval)};
+    my ($contexts, $cloud_spec_json, $poll_interval)
+        = delete @params{qw(contexts cloud_spec_json poll_interval)};
 
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
     my $deploy_step = Mast::Deploy::Service->new(
-        service_spec => $service_spec,
+        cloud_spec => $cloud_spec,
         poll_interval => $poll_interval,
     );
 
@@ -708,16 +708,16 @@ sub delete_route53_records { modify_route53_records('delete_dns_records', @_) }
 sub modify_route53_records {
     my ($step_action, %params) = @_;
 
-    my ($service_spec_json, $poll_interval)
-        = delete @params{qw(service_spec_json poll_interval)};
+    my ($cloud_spec_json, $poll_interval)
+        = delete @params{qw(cloud_spec_json poll_interval)};
 
-    my $service_spec = Mast::Service::Spec->new(
+    my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
-        service_spec_json => $service_spec_json,
+        cloud_spec_json => $cloud_spec_json,
     );
 
     my $deploy_step = Mast::Deploy::DNS->new(
-        service_spec => $service_spec,
+        cloud_spec => $cloud_spec,
         poll_interval => $poll_interval,
     );
 

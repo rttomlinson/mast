@@ -1,4 +1,4 @@
-package Mast::Service::Verification;
+package Mast::Cloud::Verification;
 
 use v5.030;
 use warnings;
@@ -9,12 +9,12 @@ use Carp 'confess';
 sub new {
   my ($class, %params) = @_;
 
-  my $service_spec = $params{service_spec};
+  my $cloud_spec = $params{cloud_spec};
 
-  confess 'Expected Mast::Service::Spec object as "service_spec" parameter'
-      unless $service_spec and $service_spec->isa('Mast::Service::Spec');
+  confess 'Expected Mast::Cloud::Spec object as "cloud_spec" parameter'
+      unless $cloud_spec and $cloud_spec->isa('Mast::Cloud::Spec');
 
-  bless { spec => $service_spec }, $class;
+  bless { spec => $cloud_spec }, $class;
 }
 
 sub verify_service {

@@ -8,19 +8,19 @@ use Carp 'confess';
 use Getopt::Long;
 use Mast::Deploy::Step;
 
-my ($service_spec_json, $output_file);
+my ($cloud_spec_json, $output_file);
 
 GetOptions(
-  'service-spec-json=s' => \$service_spec_json,
+  'cloud-spec-json=s' => \$cloud_spec_json,
   'output-file=s' => \$output_file,
 )
   or die "Error in command line arguments\n";
 
-say "Service spec: $service_spec_json";
+say "Cloud spec: $cloud_spec_json";
 
 my $output = Mast::Deploy::Step::check_if_service_and_target_groups_already_exist(
   environment => "placeholder",
-  service_spec_json => $service_spec_json,
+  cloud_spec_json => $cloud_spec_json,
 );
 
 say "No spec violations found.";

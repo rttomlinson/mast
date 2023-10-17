@@ -9,8 +9,8 @@ use Carp 'confess';
 
 use parent 'Mast::Deploy::Base';
 
-use Mast::Service::Spec;
-use Mast::Service::Spec 'collapser';
+use Mast::Cloud::Spec;
+use Mast::Cloud::Spec 'collapser';
 use Mast::AWS::ELB::LoadBalancer;
 use Mast::AWS::ELB::TargetGroup;
 
