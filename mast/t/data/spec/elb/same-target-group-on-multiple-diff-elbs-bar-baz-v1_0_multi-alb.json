@@ -1,5 +1,5 @@
 {
-    "version": "2.0",
+    "version": "1.0",
     "deploy": {
         "provider": "harness",
         "harnessConfiguration": {
@@ -113,9 +113,9 @@
                 {
                     "type": "application",
                     "name": {
-                        "prestaging": "cluster-lb-int-prestaging",
-                        "staging": "cluster-lb-int-staging",
-                        "production": "cluster-lb-int-production"
+                        "prestaging": "cluster-lb-int-pre",
+                        "staging": "cluster-lb-int-sta",
+                        "production": "cluster-lb-int-prod"
                     },
                     "securityGroups": {
                         "prestaging": "sg-alb-prestaging",
@@ -291,6 +291,23 @@
                             "prestaging": "cluster-lb-int-prestaging",
                             "staging": "cluster-lb-int-staging",
                             "production": "cluster-lb-int-production"
+                        },
+                        "containerName": "foo-foo",
+                        "containerPort": 4321,
+                        "targetGroup": {
+                            "name": {
+                                "prestaging": "clr-foo-pres-master-foobaroo",
+                                "staging": "clr-foo-stag-master-foobaroo",
+                                "production": "clr-foo-prod-master-foobaroo"
+                            },
+                            "allowExisting": false
+                        }
+                    },
+                    {
+                        "loadBalancerName": {
+                            "prestaging": "cluster-lb-int-pre",
+                            "staging": "cluster-lb-int-sta",
+                            "production": "cluster-lb-int-prod"
                         },
                         "containerName": "foo-foo",
                         "containerPort": 4321,
@@ -618,7 +635,7 @@
                     "host: standby.foo.staging.foo.com"
                 ],
                 "production": [
-                    "host: standby.foo.fooom"
+                    "host: standby.foo.foo.com"
                 ]
             }
         },

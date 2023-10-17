@@ -18,10 +18,7 @@ sub new {
   # to service_spec_json throughout the codebase. Just in case we've forgotten something,
   # error out when we see this argument name.
 
-  confess "service_spec argument name is deprecated, use service_spec_json"
-    if exists $arg{service_spec};
-
-  my ($environment, $spec_text, $contexts) = @arg{qw(environment service_spec_json contexts)};
+  my ($spec_text, $contexts) = @arg{qw(service_spec_json contexts)};
 
   my $parsed_spec = eval { decode_json $spec_text };
 
@@ -29,25 +26,8 @@ sub new {
     if $@ and not $parsed_spec;
 
   my $version = delete $parsed_spec->{version};
-
-  # discard contexts if version is less than 2.x
-  if (defined $contexts and scalar(@$contexts) and $version < 2) {
-    confess "contexts is not supported in versions less than 2.x. Either upgrade your version or rewrite your spec to not require contexts.";
-  }
   
-  # contexts allows for multiple passes and is meant to replace $environment. $environment is kept for backwards compatability
-  if (defined $environment) {
-    # warn "environment is deprecated. use context options";
-    if (defined $contexts) {
-      # warn "context(s) and environments should not both be defined, but we will process using both starting with environment. You probably just want to use context(s).\n";
-      unshift(@$contexts, $environment);
-    } else {
-      $contexts = [$environment,];
-    }
-  } else {
-    $contexts = [] unless defined $contexts;
-  }
-  
+  $contexts //= [];
   confess "Cannot parse service_spec: $@"
     if $@ and not $parsed_spec;
 

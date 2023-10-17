@@ -1,5 +1,5 @@
 {
-    "version": "2.0",
+    "version": "1.0",
     "deploy": {
         "provider": "harness",
         "harnessConfiguration": {
@@ -26,10 +26,7 @@
                     "listeners": [
                         {
                             "protocol": "HTTPS",
-                            "port": {
-                                "foo": 444,
-                                "bar": 999
-                            },
+                            "port": 444,
                             "rules": {
                                 "standby": [
                                     {
@@ -299,7 +296,7 @@
                         "containerPort": 4321,
                         "targetGroup": {
                             "name": {
-                                "prestaging": "clr-foo-pres-master-foobaroo",
+                                "prestaging": "clr-foo-pres-bap",
                                 "staging": "clr-foo-stag-master-foobaroo",
                                 "production": "clr-foo-prod-master-foobaroo"
                             },
@@ -423,7 +420,7 @@
                     },
                     {
                         "name": "laceworks-sidecar",
-                        "image": "foo/lacework:latest",
+                        "image": "fooacework:latest",
                         "essential": false,
                         "environment": [
                             {
@@ -621,7 +618,7 @@
                     "host: standby.foo.staging.foo.com"
                 ],
                 "production": [
-                    "host: standby.foo.foo.com"
+                    "host: standby.foo.foo"
                 ]
             }
         },

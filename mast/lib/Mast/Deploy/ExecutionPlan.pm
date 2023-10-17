@@ -87,21 +87,16 @@ sub check_if_service_and_target_groups_already_created {
 
 # Define what is blue_green readiness
 sub check_ecs_service_blue_green_deployment_readiness {
-  my ($self, $current_active_service_spec_json, $environment) = @_;
+  my ($self, $current_active_service_spec_json,) = @_;
 
   my $poll_interval //= 10;
-
-  say "Environment: $environment";
 
   undef $current_active_service_spec_json if $current_active_service_spec_json eq '';
   confess "current active service spec not found. this is required for this workflow." unless defined $current_active_service_spec_json;
 
-  undef $environment if $environment eq '';
-  confess "environment not found. this is required for this workflow." unless defined $environment;
-
 
   my $current_active_service_spec = Mast::Service::Spec->new(
-    environment => $environment,
+    environment => "placeholder",
     service_spec_json => $current_active_service_spec_json,
   );
   my $current_active_service = Mast::Deploy::Service->new(

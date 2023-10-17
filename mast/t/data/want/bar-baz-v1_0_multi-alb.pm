@@ -1,5 +1,5 @@
 {
-  version => '2.0',
+  version => '1.0',
   deploy => {
     provider => 'harness',
     harnessConfiguration => {
@@ -12,11 +12,11 @@
     elb => {
       loadBalancers => [{
         type => 'application',
-        name => 'cluster-lb-int-stg-another',
+        name => 'cluster-lb-int-staging',
         securityGroups => ['sg-alb-staging'],
         listeners => [{
           protocol => 'HTTPS',
-          port => 443,
+          port => 444,
           rules => [{
             placement => 'end',
             conditions => [
@@ -42,29 +42,13 @@
             ],
             action => {
               type => 'forward',
-              targetGroupName => 'clr-foo-stag-master-another',
+              targetGroupName => 'clr-foo-stag-master-foobaroo',
             },
           }],
         }],
       }],
       targetGroups => [{
         name => 'clr-foo-stag-master-foobaroo',
-        protocol => 'HTTPS',
-        port => 4321,
-        healthCheck => {
-          protocol => 'HTTPS',
-          port => 4321,
-          path => '/',
-          interval => 30,
-          timeout => 5,
-          healthyThreshold => 5,
-          unhealthyThreshold => 2,
-          matcher => {
-            HttpCode => 200,
-          },
-        },
-      },{
-        name => 'clr-foo-stag-master-another',
         protocol => 'HTTPS',
         port => 4321,
         healthCheck => {
@@ -98,14 +82,6 @@
         },
         loadBalancers => [{
           loadBalancerName => 'cluster-lb-int-staging',
-          targetGroup => {
-            name => 'clr-foo-stag-master-another',
-            allowExisting => JSON::PP::false,
-          },
-          containerName => 'foo-foo',
-          containerPort => 4321,
-        },{
-          loadBalancerName => 'cluster-lb-int-stg-another',
           targetGroup => {
             name => 'clr-foo-stag-master-foobaroo',
             allowExisting => JSON::PP::false,

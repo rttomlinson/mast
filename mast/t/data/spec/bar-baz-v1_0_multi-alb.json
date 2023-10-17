@@ -1,5 +1,5 @@
 {
-    "version": "2.0",
+    "version": "1.0",
     "deploy": {
         "provider": "harness",
         "harnessConfiguration": {
@@ -26,7 +26,7 @@
                     "listeners": [
                         {
                             "protocol": "HTTPS",
-                            "port": 443,
+                            "port": 444,
                             "rules": {
                                 "standby": [
                                     {
@@ -618,7 +618,7 @@
                     "host: standby.foo.staging.foo.com"
                 ],
                 "production": [
-                    "host: standby.foo.foo.com"
+                    "host: standby.foo.fooom"
                 ]
             }
         },

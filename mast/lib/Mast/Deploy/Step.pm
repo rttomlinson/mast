@@ -97,10 +97,10 @@ sub get_service_spec_from_ecs_service {
 sub get_service_spec_from_active_service_cluster_tag {
     my %params = @_;
 
-    my ($environment, $service_spec_json) = @params{qw(environment service_spec_json)};
+    my ($contexts, $service_spec_json) = @params{qw(contexts service_spec_json)};
 
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -122,11 +122,11 @@ sub get_service_spec_from_active_service_cluster_tag {
 sub check_if_active_service_found_on_cluster_for_given_task_definition_family_name {
     my %params = @_;
 
-    my ($environment, $service_spec_json,)
-        = @params{qw(environment service_spec_json)};
+    my ($service_spec_json,)
+        = @params{qw(service_spec_json)};
 
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -145,13 +145,13 @@ sub check_if_active_service_found_on_cluster_for_given_task_definition_family_na
 
 sub check_ecs_service_rolling_deploy_readiness {
     my %params = @_;
-    my ($environment, $service_spec_json) = @params{qw(environment service_spec_json)};
+    my ($service_spec_json) = @params{qw(contexts service_spec_json)};
 
-    confess "environment not found. this is required for this workflow." unless defined $environment;
+    # confess "contexts not found. this is required for this workflow." unless defined $contexts;
     confess "service_spec not found. this is required for this workflow." unless defined $service_spec_json;
 
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -175,15 +175,15 @@ sub check_ecs_service_rolling_deploy_readiness {
 sub check_blue_green_readiness {
     my %params = @_;
     
-    my ($environment, $service_spec_json, $current_active_service_spec_json)
-        = @params{qw(environment service_spec_json current_active_service_spec_json)};
+    my ($contexts, $service_spec_json, $current_active_service_spec_json)
+        = @params{qw(contexts service_spec_json current_active_service_spec_json)};
 
-    confess "environment not found. this is required for this workflow." unless defined $environment;
+    $contexts //= [];
     confess "service_spec not found. this is required for this workflow." unless defined $service_spec_json;
     confess "current_active_service_spec_json not found. this is required for this workflow." unless defined $current_active_service_spec_json;
 
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -192,7 +192,7 @@ sub check_blue_green_readiness {
         service_spec => $service_spec,
     );
 
-    my $potential_errors = $plan->check_ecs_service_blue_green_deployment_readiness($current_active_service_spec_json, $environment);
+    my $potential_errors = $plan->check_ecs_service_blue_green_deployment_readiness($current_active_service_spec_json, $contexts);
     my %potential_errors = %{$potential_errors};
 
     my @keys = keys %potential_errors;
@@ -209,10 +209,10 @@ sub check_blue_green_readiness {
 sub check_if_service_and_target_groups_already_exist {
     my %params = @_;
 
-    my ($environment, $service_spec_json) = @params{qw(environment service_spec_json)};
+    my ($contexts, $service_spec_json) = @params{qw(contexts service_spec_json)};
 
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -237,11 +237,11 @@ sub check_if_service_and_target_groups_already_exist {
 sub create_ecs_task_definition {
     my %params = @_;
 
-    my ($environment, $service_spec_json, $service_spec_url)
-        = @params{qw(environment service_spec_json service_spec_url)};
+    my ($contexts, $service_spec_json, $service_spec_url)
+        = @params{qw(contexts service_spec_json service_spec_url)};
     
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -260,11 +260,11 @@ sub create_ecs_task_definition {
 sub create_elb_target_groups {
     my %params = @_;
 
-    my ($environment, $service_spec_json)
-        = @params{qw(environment service_spec_json)};
+    my ($contexts, $service_spec_json)
+        = @params{qw(contexts service_spec_json)};
 
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -283,11 +283,11 @@ sub create_elb_target_groups {
 sub tag_elb_target_groups {
     my %params = @_;
 
-    my ($environment, $service_spec_json, $tags)
-        = @params{qw(environment service_spec_json tags)};
+    my ($contexts, $service_spec_json, $tags)
+        = @params{qw(contexts service_spec_json tags)};
     
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -301,11 +301,11 @@ sub tag_elb_target_groups {
 sub update_elb_listener_rules {
     my %params = @_;
 
-    my ($environment, $service_spec_json, $rule_role)
-        = @params{qw(environment service_spec_json rule_role)};
+    my ($contexts, $service_spec_json, $rule_role)
+        = @params{qw(contexts service_spec_json rule_role)};
 
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -319,11 +319,11 @@ sub update_elb_listener_rules {
 sub update_elb_listeners {
     my %params = @_;
 
-    my ($environment, $service_spec_json)
-        = @params{qw(environment service_spec_json)};
+    my ($contexts, $service_spec_json)
+        = @params{qw(contexts service_spec_json)};
 
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -337,11 +337,11 @@ sub update_elb_listeners {
 sub delete_elb_listeners {
     my %params = @_;
 
-    my ($environment, $service_spec_json)
-        = @params{qw(environment service_spec_json)};
+    my ($contexts, $service_spec_json)
+        = @params{qw(contexts service_spec_json)};
 
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -355,15 +355,15 @@ sub delete_elb_listeners {
 sub create_or_update_ecs_service {
     my %params = @_;
 
-    my ($environment, $service_spec_json, $task_definition_arn,
+    my ($contexts, $service_spec_json, $task_definition_arn,
         $overrides, $poll_interval)
-        = @params{qw(environment service_spec_json task_definition_arn
+        = @params{qw(contexts service_spec_json task_definition_arn
                      overrides poll_interval)};
 
     $poll_interval = $poll_interval // 10;
 
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -381,11 +381,11 @@ sub create_or_update_ecs_service {
 sub tag_ecs_service {
     my %params = @_;
 
-    my ($environment, $service_spec_json, $tags)
-        = @params{qw(environment service_spec_json tags)};
+    my ($contexts, $service_spec_json, $tags)
+        = @params{qw(contexts service_spec_json tags)};
     
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -399,9 +399,9 @@ sub tag_ecs_service {
 sub scale_ecs_service {
     my %params = @_;
 
-    my ($environment, $service_spec_json, $desired_count,
+    my ($contexts, $service_spec_json, $desired_count,
         $current_active_service_spec_json, $poll_interval)
-        = @params{qw(environment service_spec_json desired_count
+        = @params{qw(contexts service_spec_json desired_count
                      current_active_service_spec_json poll_interval)};
     
     $poll_interval = $poll_interval // 10;
@@ -410,7 +410,7 @@ sub scale_ecs_service {
     undef $desired_count unless looks_like_number $desired_count;
 
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -418,7 +418,7 @@ sub scale_ecs_service {
 
     if(defined $current_active_service_spec_json){
         my $current_active_service_spec = Mast::Service::Spec->new(
-            environment => $environment,
+            contexts => [],
             service_spec_json => $current_active_service_spec_json,
         );
 
@@ -442,10 +442,10 @@ sub scale_ecs_service {
 
 sub verify_service {
     my %params = @_;
-    my ($environment, $service_spec_json) = @params{'environment', 'service_spec_json'};
+    my ($contexts, $service_spec_json) = @params{'contexts', 'service_spec_json'};
 
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -459,13 +459,13 @@ sub verify_service {
 sub register_service_as_scalable_target_and_attach_scaling_policy {
     my %params = @_;
 
-    my ($environment, $service_spec_json, $poll_interval)
-        = @params{qw(environment service_spec_json poll_interval)};
+    my ($contexts, $service_spec_json, $poll_interval)
+        = @params{qw(contexts service_spec_json poll_interval)};
 
     $poll_interval //= 10;
 
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -488,11 +488,11 @@ sub register_service_as_scalable_target_and_attach_scaling_policy {
 
 sub update_current_active_service_tag_on_cluster {
     my %params = @_;
-    my ($environment, $service_spec_json)
-        = @params{qw(environment service_spec_json)};
+    my ($contexts, $service_spec_json)
+        = @params{qw(contexts service_spec_json)};
 
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -507,11 +507,11 @@ sub update_current_active_service_tag_on_cluster {
 sub delete_elb_listener_rules {
     my %params = @_;
 
-    my ($environment, $service_spec_json, $rule_role)
-        = @params{qw(environment service_spec_json rule_role)};
+    my ($contexts, $service_spec_json, $rule_role)
+        = @params{qw(contexts service_spec_json rule_role)};
 
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -525,11 +525,11 @@ sub delete_elb_listener_rules {
 sub delete_elb_target_groups {
     my %params = @_;
 
-    my ($environment, $service_spec_json)
-        = @params{qw(environment service_spec_json)};
+    my ($contexts, $service_spec_json)
+        = @params{qw(contexts service_spec_json)};
 
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -543,13 +543,13 @@ sub delete_elb_target_groups {
 sub deregister_service_as_scalable_target_and_delete_scaling_policy {
     my %params = @_;
 
-    my ($environment, $service_spec_json, $poll_interval)
-        = @params{qw(environment service_spec_json poll_interval)};
+    my ($contexts, $service_spec_json, $poll_interval)
+        = @params{qw(contexts service_spec_json poll_interval)};
 
     $poll_interval = $poll_interval // 10;
 
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -567,14 +567,14 @@ sub deregister_service_as_scalable_target_and_delete_scaling_policy {
 sub delete_ecs_service {
     my %params = @_;
 
-    my ($environment, $service_spec_json, $poll_interval)
-        = delete @params{qw(environment service_spec_json poll_interval)};
+    my ($contexts, $service_spec_json, $poll_interval)
+        = delete @params{qw(contexts service_spec_json poll_interval)};
 
     confess "service spec not found. this is required for this step."
         unless defined $service_spec_json and $service_spec_json ne '';
 
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -589,11 +589,11 @@ sub delete_ecs_service {
 sub run_test {
     my %params = @_;
 
-    my ($environment, $service_spec_json, $test_name, $poll_interval)
-        = @params{qw(environment service_spec_json test_name poll_interval)};
+    my ($contexts, $service_spec_json, $test_name, $poll_interval)
+        = @params{qw(contexts service_spec_json test_name poll_interval)};
     
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -614,11 +614,11 @@ sub run_test {
 sub run_ecs_task {
     my %params = @_;
 
-    my ($environment, $service_spec_json, $task_name, $poll_interval)
-        = @params{qw(environment service_spec_json task_name poll_interval)};
+    my ($contexts, $service_spec_json, $task_name, $poll_interval)
+        = @params{qw(contexts service_spec_json task_name poll_interval)};
     
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -695,11 +695,11 @@ sub execute_ecs_task {
 sub update_ecs_service {
     my %params = @_;
 
-    my ($environment, $service_spec_json, $poll_interval)
-        = delete @params{qw(environment service_spec_json poll_interval)};
+    my ($contexts, $service_spec_json, $poll_interval)
+        = delete @params{qw(contexts service_spec_json poll_interval)};
 
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 
@@ -717,11 +717,11 @@ sub delete_route53_records { modify_route53_records('delete_dns_records', @_) }
 sub modify_route53_records {
     my ($step_action, %params) = @_;
 
-    my ($environment, $service_spec_json, $poll_interval)
-        = delete @params{qw(environment service_spec_json poll_interval)};
+    my ($service_spec_json, $poll_interval)
+        = delete @params{qw(service_spec_json poll_interval)};
 
     my $service_spec = Mast::Service::Spec->new(
-        environment => $environment,
+        contexts => [],
         service_spec_json => $service_spec_json,
     );
 

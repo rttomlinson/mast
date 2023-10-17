@@ -8,20 +8,18 @@ use Carp 'confess';
 use Getopt::Long;
 use Mast::Deploy::Step;
 
-my ($environment, $service_spec_json, $output_file);
+my ($service_spec_json, $output_file);
 
 GetOptions(
-  'environment=s' => \$environment,
   'service-spec-json=s' => \$service_spec_json,
   'output-file=s' => \$output_file,
 )
   or die "Error in command line arguments\n";
 
-say "Environment: $environment";
 say "Service spec: $service_spec_json";
 
 my $output = Mast::Deploy::Step::check_if_service_and_target_groups_already_exist(
-  environment => $environment,
+  environment => "placeholder",
   service_spec_json => $service_spec_json,
 );
 

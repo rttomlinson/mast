@@ -1,5 +1,5 @@
 {
-  version => '1.2',
+  version => '1.0',
   aws => {
     region => 'us-east-1',
     elb => {
@@ -10,8 +10,7 @@
         listeners => [{
           protocol => 'HTTPS',
           port => 443,
-          rules => {
-            standby => [{
+          rules => [{
               placement => 'end',
               conditions => [
                 { Field => 'host-header', Values => ["standby.staging.foo.com"] },
@@ -20,18 +19,7 @@
                 type => 'forward',
                 targetGroupName => 'foo-staging-foobaroo',
               },
-            }],
-            active => [{
-              placement => 'end',
-              conditions => [
-                { Field => 'host-header', Values => ["staging.foo.com"] },
-              ],
-              action => {
-                type => 'forward',
-                targetGroupName => 'foo-staging-foobaroo',
-              },
-            }],
-          },
+            }]
         }],
       }],
       targetGroups => [{
@@ -60,6 +48,28 @@
         desiredCount => 1,
         healthCheckGracePeriod => 30,
         enableExecuteCommand => JSON::PP::true,
+        scalableTarget => {
+          ServiceNamespace => 'ecs',
+          ResourceId => "service/cluster-staging/foo-foobaroo",
+          ScalableDimension => "ecs:service:DesiredCount",
+          MinCapacity => 1,
+          MaxCapacity => 5,
+        },
+        scalingPolicy => {
+          PolicyName => "foo-example-ssfdgsdfgsdfg",
+          PolicyType => "TargetTrackingScaling",
+          ResourceId => "service/cluster-staging/foo-foobaroo",
+          ScalableDimension => "ecs:service:DesiredCount",
+          ServiceNamespace => "ecs",
+          TargetTrackingScalingPolicyConfiguration => {
+            PredefinedMetricSpecification => {
+              PredefinedMetricType => "ECSServiceAverageCPUUtilization"
+            },
+            TargetValue => 75,
+            ScaleInCooldown => 60,
+            ScaleOutCooldown => 60
+          }
+        },
         networkConfiguration => {
           awsvpcConfiguration => {
             securityGroups => ['sg-svc-staging-1', 'sg-svc-staging-2'],
@@ -104,66 +114,7 @@
         memory => '2048',
         cpu => '1024',
       },
-      tasks => {
-        standbySmokeTest => {
-          cluster => 'frontend-staging',
-          desiredCount => 1,
-          launchType => 'FARGATE',
-          taskDefinition => {
-            family => 'frontend-staging-smoke-test',
-            containerDefinitions => [{
-              name => 'end2end-tests',
-              image => 'foo/end2end-tests:latest',
-              essential => JSON::PP::true,
-              logConfiguration => {
-                logDriver => 'awslogs',
-                options => {
-                  'awslogs-region' => 'us-east-1',
-                  'awslogs-stream-prefix' => 'ecs',
-                  'awslogs-group' => '/ecs/end2end-smoke-tests',
-                },
-              },
-              environment => [{
-                name => 'appUrl', value => 'https://app-test.staging.foo.com',
-              }, {
-                name => 'cloud_env', value => 'staging',
-              }],
-              secrets => [{
-                name => 'someSecret',
-                valueFrom => "arn:aws:secretsmanager:us-east-1:123456:secret:staging/end2end-tests/config:SECRET::",
-              }],
-              command => ['/run-tests.sh'],
-            }],
-            memory => '4096',
-            cpu => '2048',
-            requiresCompatibilities => 'FARGATE',
-            networkMode => "awsvpc",
-            executionRoleArn => "arn:aws:iam::123456:role/foo_staging_ecs_TER",
-            taskRoleArn => "arn:aws:iam::123456:role/foo_staging_ecs_TR",
-          },
-          networkConfiguration => {
-            awsvpcConfiguration => {
-              securityGroups => ["sg-foo", "sg-bar"],
-              subnets => ["subnet-blerg", "subnet-throbbe"],
-              assignPublicIp => "DISABLED",
-            }
-          },
-        },
-      },
     },
-    route53 => [{
-      domain => "foo.com",
-      private => \1,
-      name => "new-record-name",
-      type => "A",
-      value => {
-        aliasType => "ApplicationLoadBalancer",
-        aliasTarget => {
-          loadBalancerName => "cluster-lb-int-staging",
-          evaluateTargetHealth => \1,
-        },
-      },
-    }],
   },
   verification => {
     request => {

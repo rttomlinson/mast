@@ -3,18 +3,18 @@
   "aws": {
     "region": "us-east-1",
     "elb": {
-      "loadBalancer": {
-        "listener": {
+      "loadBalancers": [{
+        "listeners": [{
           "action": {
             "type": "forward",
             "targetGroupName": "sdm-gw1-tg"
           },
           "protocol": "TCP",
           "port": 5005
-        },
+        }],
         "name": "sdm-gw1-admin-nlb",
         "type": "network"
-      },
+      }],
       "targetGroups": [
         {
           "healthCheck": {

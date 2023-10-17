@@ -1,5 +1,5 @@
 {
-  "version": "1.1",
+  "version": "1.0",
   "aws": {
     "region": "us-east-1",
     "elb": {
@@ -140,49 +140,7 @@
           "staging": true,
           "production": false
         },
-        "scalableTarget": {
-          "ServiceNamespace": "ecs",
-          "ResourceId": {
-            "prestaging": "service/cluster-prestaging/foo-foobaroo",
-            "staging": "service/cluster-staging/foo-foobaroo",
-            "production": "service/cluster-production/foo-foobaroo"
-          },
-          "ScalableDimension": "ecs:service:DesiredCount",
-          "MinCapacity": 1,
-          "MaxCapacity": 5
-        },
-        "scalingPolicy": {
-          "PolicyName": "foo-example-ssfdgsdfgsdfg",
-          "PolicyType": "TargetTrackingScaling",
-          "ResourceId": {
-            "prestaging": "service/cluster-prestaging/foo-foobaroo",
-            "staging": "service/cluster-staging/foo-foobaroo",
-            "production": "service/cluster-production/foo-foobaroo"
-          },
-          "ScalableDimension": "ecs:service:DesiredCount",
-          "ServiceNamespace": "ecs",
-          "TargetTrackingScalingPolicyConfiguration": {
-            "PredefinedMetricSpecification": {
-              "PredefinedMetricType": "ALBRequestCountPerTarget",
-              "ResourceLabel": {
-                "loadBalancerName": {
-                  "prestaging": "cluster-lb-int-prestaging",
-                  "staging": "cluster-lb-int-staging",
-                  "production": "cluster-lb-int-production"
-                },
-                "targetGroupName": {
-                  "prestaging": "foo-prestaging-foobaroo",
-                  "staging": "foo-staging-foobaroo",
-                  "production": "foo-production-foobaroo"
-                }
-              }
-            },
-            "TargetValue": 75,
-            "ScaleInCooldown": 60,
-            "ScaleOutCooldown": 60
-          }
-        },
-                "networkConfiguration": {
+        "networkConfiguration": {
           "awsvpcConfiguration": {
             "securityGroups": {
               "prestaging": "sg-svc-prestaging",
@@ -248,7 +206,7 @@
               "prestaging": [
                 {
                   "name": "STAGE",
-                  "value": "prestaging"
+                  "value": "steelix"
                 },
                 {
                   "name": "FOO",
@@ -337,6 +295,72 @@
           "prestaging": "0.25 vCPU",
           "staging": "1 vCPU",
           "production": "2 vCPU"
+        }
+      }
+    }
+  },
+  "verification": {
+    "request": {
+      "method": "GET",
+      "url": {
+        "prestaging": "https://internal-cluster-lb-int-prestaging.us-east-1.elb.amazonaws.com/foo",
+        "staging": "https://internal-cluster-lb-int-staging.us-east-1.elb.amazonaws.com/foo",
+        "production": "https://internal-cluster-lb-int-production.us-east-1.elb.amazonaws.com/foo"
+      },
+      "headers": {
+        "prestaging": [
+          "host: standby.prestaging.foo.com"
+        ],
+        "staging": [
+          "host: standby.staging.foo.com"
+        ],
+        "production": [
+          "host: standby.foo.com"
+        ]
+      }
+    },
+    "response": {
+      "status": 200,
+      "body": "/buildVersion:\\s+\"master-foobaroo\"/"
+    }
+  },
+  "tests": {
+    "standbySmokeTest": {
+      "type": "ecsTask",
+      "ecsTask": {
+        "cluster": "frontend-staging",
+        "desiredCount": 1,
+        "launchType": "FARGATE",
+        "taskDefinition": {
+          "family": "frontend-staging-smoke-test",
+          "containerDefinitions": [{
+            "name": "end2end-tests",
+            "image": "foo/end2end-tests:latest",
+            "essential": true,
+            "environment": [
+              { "name": "appUrl", "value": "https://app-test.staging.foo.com" },
+              { "name": "cloud_env", "value": "staging" }
+            ],
+            "secrets": [
+              { "name": "someSecret", "valueFrom": "arn:aws:secretsmanager:us-east-1:123456:secret:staging/end2end-tests/config:SECRET::" }
+            ],
+            "command": [
+              "/run-tests.sh"
+            ]
+          }],
+          "memory": "4gb",
+          "cpu": "2 vCPU",
+          "requiresCompatibilities": "FARGATE",
+          "networkMode": "awsvpc",
+          "executionRoleArn": "arn:aws:iam::123456:role/foo_staging_ecs_TER",
+          "taskRoleArn": "arn:aws:iam::123456:role/foo_staging_ecs_TR"
+        },
+        "networkConfiguration": {
+          "awsvpcConfiguration": {
+            "securityGroups": ["sg-foo", "sg-bar"],
+            "subnets": ["subnet-blerg", "subnet-throbbe"],
+            "assignPublicIp": "DISABLED"
+          }
         }
       }
     }

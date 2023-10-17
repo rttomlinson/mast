@@ -7,10 +7,9 @@ use warnings;
 use Getopt::Long;
 use Mast::Deploy::Step;
 
-my ($environment, $service_spec_json, $no_wait, $poll_interval);
+my ($service_spec_json, $no_wait, $poll_interval);
 
 GetOptions(
-  'environment=s' => \$environment,
   'service-spec-json=s' => \$service_spec_json,
   'no-wait-for-inactive' => \$no_wait,
   'poll-interval=i' => \$poll_interval,
@@ -19,13 +18,12 @@ GetOptions(
 
 $poll_interval //= 10;
 
-say "Environment: $environment";
 say "Service spec: $service_spec_json";
 say "Wait for inactive status: " . ($no_wait ? 'false' : 'true');
 say "Poll interval (seconds): $poll_interval";
 
 Mast::Deploy::Step::delete_ecs_service(
-  environment => $environment,
+  environment => "placeholder",
   service_spec_json => $service_spec_json,
   no_wait_for_inactive => $no_wait,
   poll_interval => $poll_interval,

@@ -1,9 +1,9 @@
 {
-  "version": "1.1",
+  "version": "1.0",
   "aws": {
     "region": "us-east-1",
     "elb": {
-      "loadBalancer": {
+      "loadBalancers": [{
         "type": "application",
         "name": {
           "prestaging": "cluster-lb-int-prestaging",
@@ -15,7 +15,7 @@
           "staging": "sg-alb-staging",
           "production": "sg-alb-production"
         },
-        "listener": {
+        "listeners": [{
           "protocol": "HTTPS",
           "port": 443,
           "rules": {
@@ -98,8 +98,8 @@
               }
             ]
           }
-        }
-      },
+        }]
+      }],
       "targetGroups": [
         {
           "name": {
@@ -140,13 +140,24 @@
           "staging": true,
           "production": false
         },
+        "scalableTarget": {
+          "ServiceNamespace": "ecs",
+          "ResourceId": {
+            "prestaging": "service/cluster-prestaging/foo-foobaroo",
+            "staging": "service/cluster-staging/foo-foobaroo",
+            "production": "service/cluster-production/foo-foobaroo"
+          },
+          "ScalableDimension": "ecs:service:DesiredCount",
+          "MinCapacity": 1,
+          "MaxCapacity": 5
+        },
         "scalingPolicy": {
-          "PolicyName": "example-ssfdgsdfgsdfg",
+          "PolicyName": "foo-example-ssfdgsdfgsdfg",
           "PolicyType": "TargetTrackingScaling",
           "ResourceId": {
-            "prestaging": "service/cluster-prestaging/example-ssfdgsdfgsdfg",
-            "staging": "service/cluster-staging/example-ssfdgsdfgsdfg",
-            "production": "service/cluster-production/example-ssfdgsdfgsdfg"
+            "prestaging": "service/cluster-prestaging/foo-foobaroo",
+            "staging": "service/cluster-staging/foo-foobaroo",
+            "production": "service/cluster-production/foo-foobaroo"
           },
           "ScalableDimension": "ecs:service:DesiredCount",
           "ServiceNamespace": "ecs",
@@ -154,7 +165,16 @@
             "PredefinedMetricSpecification": {
               "PredefinedMetricType": "ALBRequestCountPerTarget",
               "ResourceLabel": {
-                  "loadBalancerName": "cluster-staging"
+                "loadBalancerName": {
+                  "prestaging": "cluster-lb-int-prestaging",
+                  "staging": "cluster-lb-int-staging",
+                  "production": "cluster-lb-int-production"
+                },
+                "targetGroupName": {
+                  "prestaging": "foo-prestaging-foobaroo",
+                  "staging": "foo-staging-foobaroo",
+                  "production": "foo-production-foobaroo"
+                }
               }
             },
             "TargetValue": 75,
@@ -162,7 +182,7 @@
             "ScaleOutCooldown": 60
           }
         },
-        "networkConfiguration": {
+                "networkConfiguration": {
           "awsvpcConfiguration": {
             "securityGroups": {
               "prestaging": "sg-svc-prestaging",

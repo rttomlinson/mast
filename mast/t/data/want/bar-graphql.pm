@@ -10,8 +10,7 @@
       listeners => [{
         protocol => 'HTTPS',
         port => 443,
-        rules => {
-          standby => [{
+        rules => [{
             placement => 'start',
             conditions => [
               { Field => 'path-pattern', Values => ['/api/baz'] },
@@ -26,24 +25,7 @@
               type => 'forward',
               targetGroupName => 'foo-gql-pres-master-barbazoo',
             },
-          }],
-          active => [{
-            placement => 'start',
-            conditions => [
-              { Field => 'path-pattern', Values => ['/api/baz'] },
-              { Field => 'http-header',
-                HttpHeaderConfig => {
-                  HttpHeaderName => 'apollographql-client-version',
-                  Values => ['master-barbazoo']
-                },
-              },
-            ],
-            action => {
-              type => 'forward',
-              targetGroupName => 'foo-gql-pres-master-barbazoo',
-            },
-          }],
-        },
+          }]
       }],
     }],
     targetGroups => [{

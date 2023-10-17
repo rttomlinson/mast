@@ -7,10 +7,9 @@ use warnings;
 use Getopt::Long;
 use Mast::Deploy::Step;
 
-my ($environment, $service_spec_json, $poll_interval);
+my ($service_spec_json, $poll_interval);
 
 GetOptions(
-  'environment=s' => \$environment,
   'service-spec-json=s' => \$service_spec_json,
   'poll-interval=i' => \$poll_interval,
 )
@@ -18,12 +17,11 @@ GetOptions(
 
 $poll_interval //= 10;
 
-say "Environment: $environment";
 say "Service spec: $service_spec_json";
 say "Poll interval (seconds): $poll_interval";
 
 deregister_service_as_scalable_target_and_delete_scaling_policy(
-  environment => $environment,
+  environment => "placeholder",
   service_spec_json => $service_spec_json,
   poll_interval => $poll_interval,
 );

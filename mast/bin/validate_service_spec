@@ -7,27 +7,29 @@ use warnings;
 use JSON::PP;
 use Getopt::Long;
 use Mast::Deploy::Step;
+Getopt::Long::Configure("pass_through");
 
-my ($environment, $service_spec_json, $output_file);
+my (@contexts, $service_spec_json, $output_file);
 
 GetOptions(
-  'environment=s' => \$environment,
+  'context=s' => \@contexts,
   'service-spec-json=s' => \$service_spec_json,
   'output-file=s' => \$output_file,
 )
   or die "Error in command line arguments\n";
 
-say "Environment: $environment";
+say "Contexts: @contexts";
 say "Service spec: $service_spec_json";
 
 my $actualized_spec = validate_service_spec(
-  environment => $environment,
+  contexts => \@contexts,
   service_spec_json => $service_spec_json,
 );
 
 # Output is optional
 if ($output_file) {
   open my $fh, ">", $output_file or die "Cannot open $output_file for writing: $!\n";
-  print $fh encode_json $actualized_spec->service_spec;
+  my $json_encoded_service_spec = encode_json $actualized_spec->service_spec;
+  say $fh qq|service_spec_json=$json_encoded_service_spec|;
   close $fh;
 }

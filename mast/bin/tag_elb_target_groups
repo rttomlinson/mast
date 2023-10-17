@@ -7,23 +7,21 @@ use warnings;
 use Getopt::Long;
 use Mast::Deploy::Step;
 
-my ($environment, $service_spec_json, @tags);
+my ($service_spec_json, @tags);
 
 GetOptions(
-  'environment=s' => \$environment,
   'service-spec-json=s' => \$service_spec_json,
   'tags=s@' => \@tags,
 )
   or die "Error in command line arguments\n";
 
-say "Environment: $environment";
 say "Service spec: $service_spec_json";
 say "Tags: ", join " ", @tags;
 
 my %tag_key_value = map { split /=/ } @tags;
 
 tag_elb_target_groups(
-  environment => $environment, 
+  environment => "placeholder", 
   service_spec_json => $service_spec_json,
   tags => \%tag_key_value,
 );

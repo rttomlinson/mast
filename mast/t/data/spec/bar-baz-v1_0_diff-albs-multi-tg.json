@@ -1,5 +1,5 @@
 {
-    "version": "2.0",
+    "version": "1.0",
     "deploy": {
         "provider": "harness",
         "harnessConfiguration": {
@@ -14,108 +14,9 @@
                 {
                     "type": "application",
                     "name": {
-                        "prestaging": "cluster-lb-int-prestaging",
-                        "staging": "cluster-lb-int-staging",
-                        "production": "cluster-lb-int-production"
-                    },
-                    "securityGroups": {
-                        "prestaging": "sg-alb-prestaging",
-                        "staging": "sg-alb-staging",
-                        "production": "sg-alb-production"
-                    },
-                    "listeners": [
-                        {
-                            "protocol": "HTTPS",
-                            "port": 444,
-                            "rules": {
-                                "standby": [
-                                    {
-                                        "placement": "end",
-                                        "conditions": {
-                                            "prestaging": [
-                                                {
-                                                    "Field": "host-header",
-                                                    "Values": [
-                                                        "standby.foo.prestaging.foo.com"
-                                                    ]
-                                                }
-                                            ],
-                                            "staging": [
-                                                {
-                                                    "Field": "host-header",
-                                                    "Values": [
-                                                        "standby.foo.staging.foo.com"
-                                                    ]
-                                                }
-                                            ],
-                                            "production": [
-                                                {
-                                                    "Field": "host-header",
-                                                    "Values": [
-                                                        "standby.foo.foo.com"
-                                                    ]
-                                                }
-                                            ]
-                                        },
-                                        "action": {
-                                            "type": "forward",
-                                            "targetGroupName": {
-                                                "prestaging": "clr-foo-pres-master-foobaroo",
-                                                "staging": "clr-foo-stag-master-foobaroo",
-                                                "production": "clr-foo-prod-master-foobaroo"
-                                            }
-                                        }
-                                    }
-                                ],
-                                "active": [
-                                    {
-                                        "placement": "end",
-                                        "conditions": {
-                                            "prestaging": [
-                                                {
-                                                    "Field": "host-header",
-                                                    "Values": [
-                                                        "foo.prestaging.foo.com"
-                                                    ]
-                                                }
-                                            ],
-                                            "staging": [
-                                                {
-                                                    "Field": "host-header",
-                                                    "Values": [
-                                                        "foo.staging.foo.com"
-                                                    ]
-                                                }
-                                            ],
-                                            "production": [
-                                                {
-                                                    "Field": "host-header",
-                                                    "Values": [
-                                                        "foo.foo.com"
-                                                    ]
-                                                }
-                                            ]
-                                        },
-                                        "action": {
-                                            "type": "forward",
-                                            "targetGroupName": {
-                                                "prestaging": "clr-foo-pres-master-foobaroo",
-                                                "staging": "clr-foo-stag-master-foobaroo",
-                                                "production": "clr-foo-prod-master-foobaroo"
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                {
-                    "type": "application",
-                    "name": {
-                        "prestaging": "cluster-lb-int-pre",
-                        "staging": "cluster-lb-int-sta",
-                        "production": "cluster-lb-int-prod"
+                        "prestaging": "cluster-lb-int-psg-another",
+                        "staging": "cluster-lb-int-stg-another",
+                        "production": "cluster-lb-int-prod-another"
                     },
                     "securityGroups": {
                         "prestaging": "sg-alb-prestaging",
@@ -159,9 +60,9 @@
                                         "action": {
                                             "type": "forward",
                                             "targetGroupName": {
-                                                "prestaging": "clr-foo-pres-master-foob",
-                                                "staging": "clr-foo-stag-master-foob",
-                                                "production": "clr-foo-prod-master-foob"
+                                                "prestaging": "clr-foo-pres-master-foobaroo",
+                                                "staging": "clr-foo-stag-master-foobaroo",
+                                                "production": "clr-foo-prod-master-foobaroo"
                                             }
                                         }
                                     }
@@ -198,12 +99,74 @@
                                         "action": {
                                             "type": "forward",
                                             "targetGroupName": {
-                                                "prestaging": "clr-foo-pres-master-foob",
-                                                "staging": "clr-foo-stag-master-foob",
-                                                "production": "clr-foo-prod-master-foob"
+                                                "prestaging": "clr-foo-pres-master-foobaroo",
+                                                "staging": "clr-foo-stag-master-foobaroo",
+                                                "production": "clr-foo-prod-master-foobaroo"
                                             }
                                         }
-                                    },
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "application",
+                    "name": {
+                        "prestaging": "cluster-lb-int-prestaging",
+                        "staging": "cluster-lb-int-staging",
+                        "production": "cluster-lb-int-production"
+                    },
+                    "securityGroups": {
+                        "prestaging": "sg-alb-prestaging",
+                        "staging": "sg-alb-staging",
+                        "production": "sg-alb-production"
+                    },
+                    "listeners": [
+                        {
+                            "protocol": "HTTPS",
+                            "port": 443,
+                            "rules": {
+                                "standby": [
+                                    {
+                                        "placement": "end",
+                                        "conditions": {
+                                            "prestaging": [
+                                                {
+                                                    "Field": "host-header",
+                                                    "Values": [
+                                                        "standby.foo.prestaging.foo.com"
+                                                    ]
+                                                }
+                                            ],
+                                            "staging": [
+                                                {
+                                                    "Field": "host-header",
+                                                    "Values": [
+                                                        "standby.foo.staging.foo.com"
+                                                    ]
+                                                }
+                                            ],
+                                            "production": [
+                                                {
+                                                    "Field": "host-header",
+                                                    "Values": [
+                                                        "standby.foo.foo.com"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "action": {
+                                            "type": "forward",
+                                            "targetGroupName": {
+                                                "prestaging": "clr-foo-pres-master-another",
+                                                "staging": "clr-foo-stag-master-another",
+                                                "production": "clr-foo-prod-master-another"
+                                            }
+                                        }
+                                    }
+                                ],
+                                "active": [
                                     {
                                         "placement": "end",
                                         "conditions": {
@@ -235,9 +198,9 @@
                                         "action": {
                                             "type": "forward",
                                             "targetGroupName": {
-                                                "prestaging": "clr-foo-pres-master-foobz",
-                                                "staging": "clr-foo-stag-master-foobz",
-                                                "production": "clr-foo-prod-master-foobz"
+                                                "prestaging": "clr-foo-pres-master-another",
+                                                "staging": "clr-foo-stag-master-another",
+                                                "production": "clr-foo-prod-master-another"
                                             }
                                         }
                                     }
@@ -271,30 +234,9 @@
                 },
                 {
                     "name": {
-                        "prestaging": "clr-foo-pres-master-foob",
-                        "staging": "clr-foo-stag-master-foob",
-                        "production": "clr-foo-prod-master-foob"
-                    },
-                    "protocol": "HTTPS",
-                    "port": 4321,
-                    "healthCheck": {
-                        "protocol": "HTTPS",
-                        "port": 4321,
-                        "path": "/",
-                        "interval": 30,
-                        "timeout": 5,
-                        "healthyThreshold": 5,
-                        "unhealthyThreshold": 2,
-                        "matcher": {
-                            "HttpCode": 200
-                        }
-                    }
-                },
-                {
-                    "name": {
-                        "prestaging": "clr-foo-pres-master-foobz",
-                        "staging": "clr-foo-stag-master-foobz",
-                        "production": "clr-foo-prod-master-foobz"
+                        "prestaging": "clr-foo-pres-master-another",
+                        "staging": "clr-foo-stag-master-another",
+                        "production": "clr-foo-prod-master-another"
                     },
                     "protocol": "HTTPS",
                     "port": 4321,
@@ -375,18 +317,18 @@
                         "containerPort": 4321,
                         "targetGroup": {
                             "name": {
-                                "prestaging": "clr-foo-pres-master-foobaroo",
-                                "staging": "clr-foo-stag-master-foobaroo",
-                                "production": "clr-foo-prod-master-foobaroo"
+                                "prestaging": "clr-foo-pres-master-another",
+                                "staging": "clr-foo-stag-master-another",
+                                "production": "clr-foo-prod-master-another"
                             },
                             "allowExisting": false
                         }
                     },
                     {
                         "loadBalancerName": {
-                            "prestaging": "cluster-lb-int-pre",
-                            "staging": "cluster-lb-int-sta",
-                            "production": "cluster-lb-int-prod"
+                            "prestaging": "cluster-lb-int-psg-another",
+                            "staging": "cluster-lb-int-stg-another",
+                            "production": "cluster-lb-int-prod-another"
                         },
                         "containerName": "foo-foo",
                         "containerPort": 4321,

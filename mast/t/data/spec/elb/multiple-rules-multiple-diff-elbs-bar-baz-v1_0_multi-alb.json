@@ -1,5 +1,5 @@
 {
-    "version": "2.0",
+    "version": "1.0",
     "deploy": {
         "provider": "harness",
         "harnessConfiguration": {
@@ -113,9 +113,9 @@
                 {
                     "type": "application",
                     "name": {
-                        "prestaging": "cluster-lb-int-prestaging",
-                        "staging": "cluster-lb-int-staging",
-                        "production": "cluster-lb-int-production"
+                        "prestaging": "cluster-lb-int-pre",
+                        "staging": "cluster-lb-int-sta",
+                        "production": "cluster-lb-int-prod"
                     },
                     "securityGroups": {
                         "prestaging": "sg-alb-prestaging",
@@ -159,9 +159,9 @@
                                         "action": {
                                             "type": "forward",
                                             "targetGroupName": {
-                                                "prestaging": "clr-foo-pres-master-foobaroo",
-                                                "staging": "clr-foo-stag-master-foobaroo",
-                                                "production": "clr-foo-prod-master-foobaroo"
+                                                "prestaging": "clr-foo-pres-master-foob",
+                                                "staging": "clr-foo-stag-master-foob",
+                                                "production": "clr-foo-prod-master-foob"
                                             }
                                         }
                                     }
@@ -198,9 +198,46 @@
                                         "action": {
                                             "type": "forward",
                                             "targetGroupName": {
-                                                "prestaging": "clr-foo-pres-master-foobaroo",
-                                                "staging": "clr-foo-stag-master-foobaroo",
-                                                "production": "clr-foo-prod-master-foobaroo"
+                                                "prestaging": "clr-foo-pres-master-foob",
+                                                "staging": "clr-foo-stag-master-foob",
+                                                "production": "clr-foo-prod-master-foob"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "placement": "end",
+                                        "conditions": {
+                                            "prestaging": [
+                                                {
+                                                    "Field": "host-header",
+                                                    "Values": [
+                                                        "foo.prestaging.foo.com"
+                                                    ]
+                                                }
+                                            ],
+                                            "staging": [
+                                                {
+                                                    "Field": "host-header",
+                                                    "Values": [
+                                                        "foo.staging.foo.com"
+                                                    ]
+                                                }
+                                            ],
+                                            "production": [
+                                                {
+                                                    "Field": "host-header",
+                                                    "Values": [
+                                                        "foo.foo.com"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "action": {
+                                            "type": "forward",
+                                            "targetGroupName": {
+                                                "prestaging": "clr-foo-pres-master-foobz",
+                                                "staging": "clr-foo-stag-master-foobz",
+                                                "production": "clr-foo-prod-master-foobz"
                                             }
                                         }
                                     }
@@ -216,6 +253,48 @@
                         "prestaging": "clr-foo-pres-master-foobaroo",
                         "staging": "clr-foo-stag-master-foobaroo",
                         "production": "clr-foo-prod-master-foobaroo"
+                    },
+                    "protocol": "HTTPS",
+                    "port": 4321,
+                    "healthCheck": {
+                        "protocol": "HTTPS",
+                        "port": 4321,
+                        "path": "/",
+                        "interval": 30,
+                        "timeout": 5,
+                        "healthyThreshold": 5,
+                        "unhealthyThreshold": 2,
+                        "matcher": {
+                            "HttpCode": 200
+                        }
+                    }
+                },
+                {
+                    "name": {
+                        "prestaging": "clr-foo-pres-master-foob",
+                        "staging": "clr-foo-stag-master-foob",
+                        "production": "clr-foo-prod-master-foob"
+                    },
+                    "protocol": "HTTPS",
+                    "port": 4321,
+                    "healthCheck": {
+                        "protocol": "HTTPS",
+                        "port": 4321,
+                        "path": "/",
+                        "interval": 30,
+                        "timeout": 5,
+                        "healthyThreshold": 5,
+                        "unhealthyThreshold": 2,
+                        "matcher": {
+                            "HttpCode": 200
+                        }
+                    }
+                },
+                {
+                    "name": {
+                        "prestaging": "clr-foo-pres-master-foobz",
+                        "staging": "clr-foo-stag-master-foobz",
+                        "production": "clr-foo-prod-master-foobz"
                     },
                     "protocol": "HTTPS",
                     "port": 4321,
@@ -296,7 +375,24 @@
                         "containerPort": 4321,
                         "targetGroup": {
                             "name": {
-                                "prestaging": "clr-foo-pres-bap",
+                                "prestaging": "clr-foo-pres-master-foobaroo",
+                                "staging": "clr-foo-stag-master-foobaroo",
+                                "production": "clr-foo-prod-master-foobaroo"
+                            },
+                            "allowExisting": false
+                        }
+                    },
+                    {
+                        "loadBalancerName": {
+                            "prestaging": "cluster-lb-int-pre",
+                            "staging": "cluster-lb-int-sta",
+                            "production": "cluster-lb-int-prod"
+                        },
+                        "containerName": "foo-foo",
+                        "containerPort": 4321,
+                        "targetGroup": {
+                            "name": {
+                                "prestaging": "clr-foo-pres-master-foobaroo",
                                 "staging": "clr-foo-stag-master-foobaroo",
                                 "production": "clr-foo-prod-master-foobaroo"
                             },
@@ -420,7 +516,7 @@
                     },
                     {
                         "name": "laceworks-sidecar",
-                        "image": "fooacework:latest",
+                        "image": "foo/lacework:latest",
                         "essential": false,
                         "environment": [
                             {
@@ -618,7 +714,7 @@
                     "host: standby.foo.staging.foo.com"
                 ],
                 "production": [
-                    "host: standby.foo.foo"
+                    "host: standby.foo.foo.com"
                 ]
             }
         },

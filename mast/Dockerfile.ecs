@@ -61,5 +61,5 @@ RUN cpanm -v --no-wget $BUILD_OPTIONS /tmp/source \
 
 WORKDIR /
 
-COPY handler.pl /var/task/
+COPY ecs-task-handler.pl /var/task/handler.pl
 CMD [ "handler.handle" ]

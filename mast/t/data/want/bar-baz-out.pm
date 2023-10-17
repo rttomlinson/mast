@@ -10,8 +10,7 @@
         listeners => [{
           protocol => 'HTTPS',
           port => 443,
-          rules => {
-            standby => [{
+          rules => [{
               placement => 'end',
               conditions => [
                 { Field => 'host-header', Values => ["standby.staging.foo.com"] },
@@ -20,18 +19,7 @@
                 type => 'forward',
                 targetGroupName => 'foo-staging-foobaroo',
               },
-            }],
-            active => [{
-              placement => 'end',
-              conditions => [
-                { Field => 'host-header', Values => ["staging.foo.com"] },
-              ],
-              action => {
-                type => 'forward',
-                targetGroupName => 'foo-staging-foobaroo',
-              },
-            }],
-          },
+            }]
         }],
       }],
       targetGroups => [{
