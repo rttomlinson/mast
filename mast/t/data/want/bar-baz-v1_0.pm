@@ -92,7 +92,66 @@
         memory => '2048',
         cpu => '1024',
       },
+      tasks => {
+        standbySmokeTest => {
+          cluster => 'frontend-staging',
+          desiredCount => 1,
+          launchType => 'FARGATE',
+          taskDefinition => {
+            family => 'frontend-staging-smoke-test',
+            containerDefinitions => [{
+              name => 'end2end-tests',
+              image => 'foo/end2end-tests:latest',
+              essential => JSON::PP::true,
+              logConfiguration => {
+                logDriver => 'awslogs',
+                options => {
+                  'awslogs-region' => 'us-east-1',
+                  'awslogs-stream-prefix' => 'ecs',
+                  'awslogs-group' => '/ecs/end2end-smoke-tests',
+                },
+              },
+              environment => [{
+                name => 'appUrl', value => 'https://app-test.staging.foo.com',
+              }, {
+                name => 'cloud_env', value => 'staging',
+              }],
+              secrets => [{
+                name => 'someSecret',
+                valueFrom => "arn:aws:secretsmanager:us-east-1:123456:secret:staging/end2end-tests/config:SECRET::",
+              }],
+              command => ['/run-tests.sh'],
+            }],
+            memory => '4096',
+            cpu => '2048',
+            requiresCompatibilities => 'FARGATE',
+            networkMode => "awsvpc",
+            executionRoleArn => "arn:aws:iam::123456:role/foo_staging_ecs_TER",
+            taskRoleArn => "arn:aws:iam::123456:role/foo_staging_ecs_TR",
+          },
+          networkConfiguration => {
+            awsvpcConfiguration => {
+              securityGroups => ["sg-foo", "sg-bar"],
+              subnets => ["subnet-blerg", "subnet-throbbe"],
+              assignPublicIp => "DISABLED",
+            }
+          },
+        },
+      },
     },
+    route53 => [{
+      domain => "foo.com",
+      private => \1,
+      name => "new-record-name",
+      type => "A",
+      value => {
+        aliasType => "ApplicationLoadBalancer",
+        aliasTarget => {
+          loadBalancerName => "cluster-lb-int-staging",
+          evaluateTargetHealth => \1,
+        },
+      },
+    }],
   },
   verification => {
     request => {

@@ -12,10 +12,10 @@ use Mast::Deploy::DNS;
 use lib 't/lib';
 use AWS::MockCLIWrapper;
 
-my $service_spec_json = read_file "t/data/spec/bar-baz-v1_2.json";
-my $env = "staging";
+my $service_spec_json = read_file "t/data/spec/bar-baz-v1_0.json";
+my $contexts = ["staging", "standby"];
 my $service_spec_obj = Mast::Service::Spec->new(
-  environment => $env,
+  contexts => $contexts,
   service_spec_json => $service_spec_json,
 );
 

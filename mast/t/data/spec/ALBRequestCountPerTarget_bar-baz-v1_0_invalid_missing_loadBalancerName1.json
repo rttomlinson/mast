@@ -3,7 +3,7 @@
   "aws": {
     "region": "us-east-1",
     "elb": {
-      "loadBalancer": {
+      "loadBalancers": [{
         "type": "application",
         "name": {
           "prestaging": "cluster-lb-int-prestaging",
@@ -15,7 +15,7 @@
           "staging": "sg-alb-staging",
           "production": "sg-alb-production"
         },
-        "listener": {
+        "listeners": [{
           "protocol": "HTTPS",
           "port": 443,
           "rules": {
@@ -98,8 +98,8 @@
               }
             ]
           }
-        }
-      },
+        }]
+      }],
       "targetGroups": [
         {
           "name": {

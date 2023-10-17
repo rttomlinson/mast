@@ -18,8 +18,8 @@ use AWS::MockCLIWrapper;
 
 # Need to test value validation test for different envs
 my $service_spec_json = read_file "t/data/spec/test-baseline-valid-template.json";
-my $env = "prestaging";
-my $service_spec_obj = Mast::Service::Spec->new(environment => $env, service_spec_json => $service_spec_json);
+my $contexts = ["prestaging", "active"];
+my $service_spec_obj = Mast::Service::Spec->new(contexts => $contexts, service_spec_json => $service_spec_json);
 
 my $aws = AWS::MockCLIWrapper->new(
     aws_region => 'us-east-1',

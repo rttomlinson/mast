@@ -20,8 +20,8 @@ my $account_limits = join '', <DATA>;
 
 # Need to test value validation test for different envs
 my $service_spec_json = read_file "t/data/spec/test-baseline-valid-template.json";
-my $env = "prestaging";
-my $service_spec_obj = Mast::Service::Spec->new(environment => $env, service_spec_json => $service_spec_json);
+my $contexts = ["prestaging", "standby"];
+my $service_spec_obj = Mast::Service::Spec->new(contexts => $contexts, service_spec_json => $service_spec_json);
 
 # override describe-target-groups to just pretend that one already exists
 
@@ -298,7 +298,7 @@ $aws = AWS::MockCLIWrapper->new(
 say "starting tests for v2.0";
 say "diff albs multi tg";
 # allow multiple application lb listener rules
-$service_spec_json = read_file "t/data/spec/bar-baz-v2_0_diff-albs-multi-tg.json";
+$service_spec_json = read_file "t/data/spec/bar-baz-v1_0_diff-albs-multi-tg.json";
 my @contexts = ("prestaging", "active");
 $service_spec_obj = Mast::Service::Spec->new(environment => undef, service_spec_json => $service_spec_json, contexts => \@contexts);
 say "Create ListenerRules object";

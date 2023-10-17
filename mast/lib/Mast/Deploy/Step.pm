@@ -70,15 +70,6 @@ sub get_service_spec_from_service_spec_url {
 sub validate_service_spec {
     my $spec = Mast::Service::Spec->new(@_);
 
-    # This is a compatibility hack. Remove this when we have migrated
-    # everything to 2.0+
-    {
-        use Scalar::Util 'dualvar';
-
-        $spec->{spec}->{version} = dualvar 2.0, '2.0'
-            unless $spec->{spec}->{version} >= 2.0;
-    }
-
     return $spec;
 }
 

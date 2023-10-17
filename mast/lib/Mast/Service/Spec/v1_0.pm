@@ -524,7 +524,7 @@ sub _validate_aws_elb_name {
     if ref $name;
   
   confess qq|ELB load balancer name length cannot exceed 32 characters, got "$name"|
-    if length $name > 32;    
+    if length $name > 32;
   
   confess qq|Invalid ELB load balancer name, only alphanumerics and hyphens are permitted: got "$name"|
    unless $name =~ /^[-a-zA-Z0-9]+$/;
@@ -536,7 +536,7 @@ sub _validate_aws_elb_name {
 sub _validate_aws_elb_type {
   my ($self, $lb) = @_;
 
-  confess "unsupported type '$lb->{type}' in load balancer $lb->{name}: " .
+  confess "Unsupported type. '$lb->{type}' in load balancer $lb->{name}: " .
           "expected 'application' or 'network'"
     unless $lb->{type} =~ /^(application|network)$/;
 }

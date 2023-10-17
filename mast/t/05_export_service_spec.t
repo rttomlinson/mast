@@ -15,8 +15,8 @@ for my $test (sort keys %$tests) {
   next if @ARGV and not grep { $_ eq $test } @ARGV;
 
   my $test_data = $tests->{$test};
-  my ($env, $spec_from, $want_from, $contexts)
-    = @$test_data{qw(environment spec_from want_from contexts)};
+  my ($spec_from, $want_from, $contexts)
+    = @$test_data{qw(spec_from want_from contexts)};
 
   my $service_spec = read_file $spec_from;
   my $want = eval read_file $want_from;
@@ -25,7 +25,6 @@ for my $test (sort keys %$tests) {
 
   my $have = eval {
     Mast::Deploy::Step::validate_service_spec(
-      environment => $env,
       service_spec_json => $service_spec,
       contexts => $contexts,
     )->service_spec
@@ -41,9 +40,9 @@ done_testing;
 __DATA__
 # line 42
 {
-  'bar-baz-1.2-to-2.0-staging' => {
-    environment => 'staging',
-    spec_from => 't/data/spec/bar-baz-v1_2.json',
+  'bar-baz-1.0-staging' => {
+    contexts => ['staging', 'standby'],
+    spec_from => 't/data/spec/bar-baz-v1_0.json',
     want_from => 't/data/want/bar-baz-out.pm',
   },
 }
