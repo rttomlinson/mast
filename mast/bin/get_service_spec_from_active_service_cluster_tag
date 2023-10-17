@@ -8,11 +8,10 @@ no warnings 'uninitialized';
 use Getopt::Long;
 use Mast::Deploy::Step;
 
-my ($environment, $service_spec_json, $docker_username, $docker_password, $github_token,
+my ($service_spec_json, $docker_username, $docker_password, $github_token,
     $output_file, @auth_tokens);
 
 GetOptions(
-  'environment=s' => \$environment,
   'service-spec-json=s' => \$service_spec_json,
   'docker-username=s' => \$docker_username,
   'docker-password=s' => \$docker_password,
@@ -24,7 +23,6 @@ GetOptions(
 
 die "Output file parameter is missing\n" unless length $output_file > 1;
 
-say "Environment: $environment";
 say "Service spec: $service_spec_json";
 say "Docker hub username: $docker_username";
 say "Docker hub password: " . ($docker_password =~ s/./*/gr);
@@ -32,7 +30,7 @@ say "Using " . (scalar @auth_tokens) . " Docker registry auth tokens";
 say "Github token: " . ($github_token =~ s/./*/gr);
 
 my ($current_active_service_spec_json, $spec_url) = get_service_spec_from_active_service_cluster_tag(
-  environment => $environment,
+  environment => "placeholder",
   service_spec_json => $service_spec_json,
   docker_username => $docker_username,
   docker_password => $docker_password,

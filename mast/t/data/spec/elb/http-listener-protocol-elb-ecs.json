@@ -2,9 +2,9 @@
   "aws": {
     "region": "us-east-1"
   },
-  "version": "0",
+  "version": "1.0",
   "elb": {
-    "loadBalancer": {
+    "loadBalancers": [{
       "type": "application",
       "name": {
         "prestaging": "example-lb-int-prestag",
@@ -16,7 +16,7 @@
         "staging": "sg-alb-staging",
         "production": "sg-alb-production"
       },
-      "listener": {
+      "listeners": [{
         "protocol": "HTTP",
         "port": 443,
         "rules": {
@@ -138,8 +138,8 @@
             }
           ]
         }
-      }
-    },
+      }]
+    }],
     "targetGroups": [
       {
         "name": {

@@ -1,371 +1,372 @@
 {
   "aws": {
-    "region": "us-east-1"
-  },
-  "version": "0",
-  "elb": {
-    "loadBalancer": {
-      "type": "application",
-      "name": "",
-      "securityGroups": {
-        "prestaging": "sg-00828717b02d12451",
-        "staging": "sg-alb-staging",
-        "production": "sg-alb-production"
-      },
-      "listener": {
-        "protocol": "HTTPS",
-        "port": 443,
-        "rules": {
-          "standby": [
-            {
-              "placement": "end",
-              "conditions": {
-                "prestaging": [
-                  {
-                    "Field": "host-header",
-                    "Values": [
-                      "standby.example.prestaging.foo.io"
-                    ]
-                  }
-                ],
-                "staging": [
-                  {
-                    "Field": "host-header",
-                    "Values": [
-                      "standby.foo.staging.foo.io"
-                    ]
-                  }
-                ],
-                "production": [
-                  {
-                    "Field": "host-header",
-                    "Values": [
-                      "standby.foo.com"
-                    ]
-                  }
-                ]
-              },
-              "action": {
-                "type": "forward",
-                "targetGroupName": {
-                  "prestaging": "foo",
-                  "staging": "bar",
-                  "production": "buzz"
-                }
-              }
-            }
-          ],
-          "active": [
-            {
-              "placement": "end",
-              "conditions": {
-                "prestaging": [
-                  {
-                    "Field": "host-header",
-                    "Values": [
-                      "example.prestaging.foo.io"
-                    ]
-                  }
-                ],
-                "staging": [
-                  {
-                    "Field": "host-header",
-                    "Values": [
-                      "staging.foo.com"
-                    ]
-                  }
-                ],
-                "production": [
-                  {
-                    "Field": "host-header",
-                    "Values": [
-                      "foo.com"
-                    ]
-                  }
-                ]
-              },
-              "action": {
-                "type": "forward",
-                "targetGroupName": {
-                  "prestaging": "foo",
-                  "staging": "bar",
-                  "production": "buzz"
-                }
-              }
-            }
-          ],
-          "branch": [
-            {
-              "placement": "end",
-              "conditions": {
-                "prestaging": [
-                  {
-                    "Field": "host-header",
-                    "Values": [
-                      "placeholder.example.prestaging.foo.io"
-                    ]
-                  }
-                ],
-                "staging": [
-                  {
-                    "Field": "host-header",
-                    "Values": [
-                      "placeholder.example.staging.foo.io"
-                    ]
-                  }
-                ],
-                "production": [
-                  {
-                    "Field": "host-header",
-                    "Values": [
-                      "placeholder.example.production.foo.io"
-                    ]
-                  }
-                ]
-              },
-              "action": {
-                "type": "forward",
-                "targetGroupName": {
-                  "prestaging": "foo",
-                  "staging": "bar",
-                  "production": "buzz"
-                }
-              }
-            }
-          ]
-        }
-      }
-    },
-    "targetGroups": [
-      {
-        "name": {
-          "prestaging": "foo",
-          "staging": "bar",
-          "production": "buzz"
+    "region": "us-east-1",
+    "elb": {
+      "loadBalancers": [{
+        "type": "application",
+        "name": "",
+        "securityGroups": {
+          "prestaging": "sg-00828717b02d12451",
+          "staging": "sg-alb-staging",
+          "production": "sg-alb-production"
         },
-        "protocol": "HTTP",
-        "port": 8080,
-        "healthCheck": {
+        "listeners": [{
+          "protocol": "HTTPS",
+          "port": 443,
+          "rules": {
+            "standby": [
+              {
+                "placement": "end",
+                "conditions": {
+                  "prestaging": [
+                    {
+                      "Field": "host-header",
+                      "Values": [
+                        "standby.example.prestaging.foo.io"
+                      ]
+                    }
+                  ],
+                  "staging": [
+                    {
+                      "Field": "host-header",
+                      "Values": [
+                        "standby.foo.staging.foo.io"
+                      ]
+                    }
+                  ],
+                  "production": [
+                    {
+                      "Field": "host-header",
+                      "Values": [
+                        "standby.foo.com"
+                      ]
+                    }
+                  ]
+                },
+                "action": {
+                  "type": "forward",
+                  "targetGroupName": {
+                    "prestaging": "foo",
+                    "staging": "bar",
+                    "production": "buzz"
+                  }
+                }
+              }
+            ],
+            "active": [
+              {
+                "placement": "end",
+                "conditions": {
+                  "prestaging": [
+                    {
+                      "Field": "host-header",
+                      "Values": [
+                        "example.prestaging.foo.io"
+                      ]
+                    }
+                  ],
+                  "staging": [
+                    {
+                      "Field": "host-header",
+                      "Values": [
+                        "staging.foo.com"
+                      ]
+                    }
+                  ],
+                  "production": [
+                    {
+                      "Field": "host-header",
+                      "Values": [
+                        "foo.com"
+                      ]
+                    }
+                  ]
+                },
+                "action": {
+                  "type": "forward",
+                  "targetGroupName": {
+                    "prestaging": "foo",
+                    "staging": "bar",
+                    "production": "buzz"
+                  }
+                }
+              }
+            ],
+            "branch": [
+              {
+                "placement": "end",
+                "conditions": {
+                  "prestaging": [
+                    {
+                      "Field": "host-header",
+                      "Values": [
+                        "placeholder.example.prestaging.foo.io"
+                      ]
+                    }
+                  ],
+                  "staging": [
+                    {
+                      "Field": "host-header",
+                      "Values": [
+                        "placeholder.example.staging.foo.io"
+                      ]
+                    }
+                  ],
+                  "production": [
+                    {
+                      "Field": "host-header",
+                      "Values": [
+                        "placeholder.example.production.foo.io"
+                      ]
+                    }
+                  ]
+                },
+                "action": {
+                  "type": "forward",
+                  "targetGroupName": {
+                    "prestaging": "foo",
+                    "staging": "bar",
+                    "production": "buzz"
+                  }
+                }
+              }
+            ]
+          }
+        }]
+      }],
+      "targetGroups": [
+        {
+          "name": {
+            "prestaging": "foo",
+            "staging": "bar",
+            "production": "buzz"
+          },
           "protocol": "HTTP",
           "port": 8080,
-          "path": "/",
-          "interval": 30,
-          "timeout": 5,
-          "healthyThreshold": 5,
-          "unhealthyThreshold": 2,
-          "matcher": {
-            "HttpCode": 200
-          }
-        }
-      }
-    ]
-  },
-  "ecs": {
-    "service": {
-      "cluster": {
-        "prestaging": "testing-prestaging",
-        "staging": "testing-prestaging",
-        "production": "testing-prestaging"
-      },
-      "name": "foo-placeholder",
-      "scalableTarget": {
-        "ServiceNamespace": "ecs",
-        "ResourceId": {
-          "prestaging": "service/testing-prestaging/foo-placeholder",
-          "staging": "service/testing-prestaging/foo-placeholder",
-          "production": "service/testing-prestaging/foo-placeholder"
-        },
-        "ScalableDimension": "ecs:service:DesiredCount",
-        "MinCapacity": 3,
-        "MaxCapacity": 50
-      },
-      "scalingPolicy": {
-        "PolicyName": "foo-placeholder",
-        "PolicyType": "TargetTrackingScaling",
-        "ResourceId": {
-          "prestaging": "service/testing-prestaging/foo-placeholder",
-          "staging": "service/testing-prestaging/foo-placeholder",
-          "production": "service/testing-prestaging/foo-placeholder"
-        },
-        "ScalableDimension": "ecs:service:DesiredCount",
-        "ServiceNamespace": "ecs",
-        "TargetTrackingScalingPolicyConfiguration": {
-          "PredefinedMetricSpecification": {
-            "PredefinedMetricType": "ECSServiceAverageCPUUtilization"
-          },
-          "TargetValue": 75,
-          "ScaleInCooldown": 60,
-          "ScaleOutCooldown": 60
-        }
-      },
-      "launchType": "FARGATE",
-      "desiredCount": 1,
-      "healthCheckGracePeriod": 30,
-      "enableExecuteCommand": {
-        "prestaging": true,
-        "staging": true,
-        "production": false
-      },
-      "networkConfiguration": {
-        "awsvpcConfiguration": {
-          "securityGroups": {
-            "prestaging": "sg-07c08bebb439ebb98",
-            "staging": [
-              "sg-svc-staging-1",
-              "sg-svc-staging-2"
-            ],
-            "production": [
-              "sg-svc-production-1",
-              "sg-svc-production-2",
-              "sg-svc-production-3"
-            ]
-          },
-          "subnets": {
-            "prestaging": [
-              "subnet-7ccfe234",
-              "subnet-c43341c8",
-              "subnet-d17219fd",
-              "subnet-f8bd4c9c",
-              "subnet-fce4f5c0",
-              "subnet-fdb6d5a7"
-            ],
-            "staging": [
-              "subnet-staging-1",
-              "subnet-staging-2"
-            ],
-            "production": [
-              "subnet-production-1",
-              "subnet-production-2",
-              "subnet-production-3",
-              "subnet-production-4",
-              "subnet-production-5"
-            ]
-          },
-          "assignPublicIp": "DISABLED"
-        }
-      },
-      "loadBalancers": [
-        {
-          "loadBalancerName": {
-            "prestaging": "example-lb-int-prestag",
-            "staging": "cluster-lb-int-staging",
-            "production": "cluster-lb-int-production"
-          },
-          "containerName": "foo",
-          "containerPort": 8080,
-          "targetGroup": {
-            "name": {
-              "prestaging": "foo",
-              "staging": "bar",
-              "production": "buzz"
-            },
-            "allowExisting": false
+          "healthCheck": {
+            "protocol": "HTTP",
+            "port": 8080,
+            "path": "/",
+            "interval": 30,
+            "timeout": 5,
+            "healthyThreshold": 5,
+            "unhealthyThreshold": 2,
+            "matcher": {
+              "HttpCode": 200
+            }
           }
         }
       ]
     },
-    "taskDefinition": {
-      "family": "hello-wuuurld",
-      "containerDefinitions": [
-        {
-          "name": "foo",
-          "image": "foous.jfrog.io/foo-docker-v0-virtual/foo/hello-world:kljds13123",
-          "essential": true,
-          "environment": {
-            "prestaging": [
-              {
-                "name": "STAGE",
-                "value": "prestaging"
-              },
-              {
-                "name": "FOO",
-                "value": "bar"
-              }
-            ],
-            "staging": [
-              {
-                "name": "STAGE",
-                "value": "staging"
-              },
-              {
-                "name": "FOO",
-                "value": "baz"
-              }
-            ],
-            "production": [
-              {
-                "name": "STAGE",
-                "value": "production"
-              },
-              {
-                "name": "FOO",
-                "value": "qux"
-              },
-              {
-                "name": "PRODUCTION_ONLY",
-                "value": true
-              }
-            ]
+    "ecs": {
+      "service": {
+        "cluster": {
+          "prestaging": "testing-prestaging",
+          "staging": "testing-prestaging",
+          "production": "testing-prestaging"
+        },
+        "name": "foo-placeholder",
+        "scalableTarget": {
+          "ServiceNamespace": "ecs",
+          "ResourceId": {
+            "prestaging": "service/testing-prestaging/foo-placeholder",
+            "staging": "service/testing-prestaging/foo-placeholder",
+            "production": "service/testing-prestaging/foo-placeholder"
           },
-          "secrets": {
-            "prestaging": [],
-            "staging": [
-              {
-                "name": "SECRET",
-                "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789:secret:staging/foo/config:SECRET::"
-              },
-              {
-                "name": "API_KEY",
-                "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789:secret:staging/foo/api_keys:API_KEY::"
-              }
-            ],
-            "production": [
-              {
-                "name": "SECRET",
-                "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789:secret:production/foo/config:SECRET::"
-              },
-              {
-                "name": "API_KEY",
-                "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789:secret:production/foo/api_keys:API_KEY::"
-              }
-            ]
+          "ScalableDimension": "ecs:service:DesiredCount",
+          "MinCapacity": 3,
+          "MaxCapacity": 50
+        },
+        "scalingPolicy": {
+          "PolicyName": "foo-placeholder",
+          "PolicyType": "TargetTrackingScaling",
+          "ResourceId": {
+            "prestaging": "service/testing-prestaging/foo-placeholder",
+            "staging": "service/testing-prestaging/foo-placeholder",
+            "production": "service/testing-prestaging/foo-placeholder"
           },
-          "portMappings": [
-            {
-              "protocol": "tcp",
-              "containerPort": 8080
+          "ScalableDimension": "ecs:service:DesiredCount",
+          "ServiceNamespace": "ecs",
+          "TargetTrackingScalingPolicyConfiguration": {
+            "PredefinedMetricSpecification": {
+              "PredefinedMetricType": "ECSServiceAverageCPUUtilization"
+            },
+            "TargetValue": 75,
+            "ScaleInCooldown": 60,
+            "ScaleOutCooldown": 60
+          }
+        },
+        "launchType": "FARGATE",
+        "desiredCount": 1,
+        "healthCheckGracePeriod": 30,
+        "enableExecuteCommand": {
+          "prestaging": true,
+          "staging": true,
+          "production": false
+        },
+        "networkConfiguration": {
+          "awsvpcConfiguration": {
+            "securityGroups": {
+              "prestaging": "sg-07c08bebb439ebb98",
+              "staging": [
+                "sg-svc-staging-1",
+                "sg-svc-staging-2"
+              ],
+              "production": [
+                "sg-svc-production-1",
+                "sg-svc-production-2",
+                "sg-svc-production-3"
+              ]
+            },
+            "subnets": {
+              "prestaging": [
+                "subnet-7ccfe234",
+                "subnet-c43341c8",
+                "subnet-d17219fd",
+                "subnet-f8bd4c9c",
+                "subnet-fce4f5c0",
+                "subnet-fdb6d5a7"
+              ],
+              "staging": [
+                "subnet-staging-1",
+                "subnet-staging-2"
+              ],
+              "production": [
+                "subnet-production-1",
+                "subnet-production-2",
+                "subnet-production-3",
+                "subnet-production-4",
+                "subnet-production-5"
+              ]
+            },
+            "assignPublicIp": "DISABLED"
+          }
+        },
+        "loadBalancers": [
+          {
+            "loadBalancerName": {
+              "prestaging": "example-lb-int-prestag",
+              "staging": "cluster-lb-int-staging",
+              "production": "cluster-lb-int-production"
+            },
+            "containerName": "foo",
+            "containerPort": 8080,
+            "targetGroup": {
+              "name": {
+                "prestaging": "foo",
+                "staging": "bar",
+                "production": "buzz"
+              },
+              "allowExisting": false
             }
-          ],
-          "privileged": false,
-          "readonlyRootFilesystem": false
+          }
+        ]
+      },
+      "taskDefinition": {
+        "family": "hello-wuuurld",
+        "containerDefinitions": [
+          {
+            "name": "foo",
+            "image": "foous.jfrog.io/foo-docker-v0-virtual/foo/hello-world:kljds13123",
+            "essential": true,
+            "environment": {
+              "prestaging": [
+                {
+                  "name": "STAGE",
+                  "value": "prestaging"
+                },
+                {
+                  "name": "FOO",
+                  "value": "bar"
+                }
+              ],
+              "staging": [
+                {
+                  "name": "STAGE",
+                  "value": "staging"
+                },
+                {
+                  "name": "FOO",
+                  "value": "baz"
+                }
+              ],
+              "production": [
+                {
+                  "name": "STAGE",
+                  "value": "production"
+                },
+                {
+                  "name": "FOO",
+                  "value": "qux"
+                },
+                {
+                  "name": "PRODUCTION_ONLY",
+                  "value": true
+                }
+              ]
+            },
+            "secrets": {
+              "prestaging": [],
+              "staging": [
+                {
+                  "name": "SECRET",
+                  "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789:secret:staging/foo/config:SECRET::"
+                },
+                {
+                  "name": "API_KEY",
+                  "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789:secret:staging/foo/api_keys:API_KEY::"
+                }
+              ],
+              "production": [
+                {
+                  "name": "SECRET",
+                  "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789:secret:production/foo/config:SECRET::"
+                },
+                {
+                  "name": "API_KEY",
+                  "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789:secret:production/foo/api_keys:API_KEY::"
+                }
+              ]
+            },
+            "portMappings": [
+              {
+                "protocol": "tcp",
+                "containerPort": 8080
+              }
+            ],
+            "privileged": false,
+            "readonlyRootFilesystem": false
+          }
+        ],
+        "executionRoleArn": {
+          "prestaging": "arn:aws:iam::123456789:role/example_barebones_prestaging_ecs_TER",
+          "staging": "arn:aws:iam::123456789:role/foo_graphql_staging_ecs_TER",
+          "production": "arn:aws:iam::123456789:role/foo_graphql_production_ecs_TER"
+        },
+        "taskRoleArn": {
+          "prestaging": "arn:aws:iam::123456789:role/example_barebones_prestaging_ecs_TR",
+          "staging": "arn:aws:iam::123456789:role/foo_graphql_staging_ecs_TR",
+          "production": "arn:aws:iam::123456789:role/foo_graphql_production_ecs_TR"
+        },
+        "requiresCompatibilities": [
+          "FARGATE"
+        ],
+        "networkMode": "awsvpc",
+        "memory": {
+          "prestaging": "512mb",
+          "staging": "1gb",
+          "production": "2gb"
+        },
+        "cpu": {
+          "prestaging": "0.25 vCPU",
+          "staging": "0.5 vCPU",
+          "production": "1 vCPU"
         }
-      ],
-      "executionRoleArn": {
-        "prestaging": "arn:aws:iam::123456789:role/example_barebones_prestaging_ecs_TER",
-        "staging": "arn:aws:iam::123456789:role/foo_graphql_staging_ecs_TER",
-        "production": "arn:aws:iam::123456789:role/foo_graphql_production_ecs_TER"
-      },
-      "taskRoleArn": {
-        "prestaging": "arn:aws:iam::123456789:role/example_barebones_prestaging_ecs_TR",
-        "staging": "arn:aws:iam::123456789:role/foo_graphql_staging_ecs_TR",
-        "production": "arn:aws:iam::123456789:role/foo_graphql_production_ecs_TR"
-      },
-      "requiresCompatibilities": [
-        "FARGATE"
-      ],
-      "networkMode": "awsvpc",
-      "memory": {
-        "prestaging": "512mb",
-        "staging": "1gb",
-        "production": "2gb"
-      },
-      "cpu": {
-        "prestaging": "0.25 vCPU",
-        "staging": "0.5 vCPU",
-        "production": "1 vCPU"
       }
     }
   },
+  "version": "1.0",
+  
   "verification": {
     "request": {
       "method": "GET",

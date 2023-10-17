@@ -1,14 +1,10 @@
-use Test::More tests => 25;
+use Test::More tests => 21;
 
 use v5.030;
 use warnings;
 
 use_ok 'Mast::Service::Spec';
-use_ok 'Mast::Service::Spec::v0';
 use_ok 'Mast::Service::Spec::v1_0';
-use_ok 'Mast::Service::Spec::v1_1';
-use_ok 'Mast::Service::Spec::v1_2';
-use_ok 'Mast::Service::Spec::v2_0';
 use_ok 'Mast::Service::Metadata';
 use_ok 'Mast::Service::Verification';
 

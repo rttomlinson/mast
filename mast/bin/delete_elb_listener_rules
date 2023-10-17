@@ -7,23 +7,18 @@ use warnings;
 use Getopt::Long;
 use Mast::Deploy::Step;
 
-my ($environment, $rule_role, $service_spec_json);
+my ($rule_role, $service_spec_json);
 
 GetOptions(
-  'environment=s' => \$environment,
   'service-spec-json=s' => \$service_spec_json,
-  'role=s' => \$rule_role,
 )
   or die "Error in command line arguments\n";
 
-say "Environment: $environment";
-say "Rule role: $rule_role";
 say "Service spec: $service_spec_json";
 
 my $num_deleted = delete_elb_listener_rules(
-  environment => $environment,
+  environment => "placeholder",
   service_spec_json => $service_spec_json,
-  rule_role => $rule_role,
 );
 
 say "Successfully deleted $num_deleted listener rules";

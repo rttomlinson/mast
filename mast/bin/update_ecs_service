@@ -12,10 +12,9 @@ use Mast::Deploy::Service;
 
 use Mast::Deploy::Step;
 
-my ($environment, $service_spec_json, $task_definition_arn, $overrides_json, $poll_interval);
+my ($service_spec_json, $task_definition_arn, $overrides_json, $poll_interval);
 
 GetOptions(
-  'environment=s' => \$environment,
   'service-spec-json=s' => \$service_spec_json,
   'task-definition-arn=s' => \$task_definition_arn,
   'service-overrides-json=s' => \$overrides_json,
@@ -25,7 +24,6 @@ GetOptions(
 
 $poll_interval //= 10;
 
-say "Environment: $environment";
 say "Service spec: $service_spec_json";
 say "Task Definition arn: $task_definition_arn";
 say "ECS service overrides JSON: $overrides_json";
@@ -51,7 +49,7 @@ die "Updating both new task definition ARN and service overrides is not supporte
   if $task_definition_arn and %$overrides;
 
 Mast::Deploy::Step::update_ecs_service(
-  environment => $environment,
+  environment => "placeholder",
   service_spec_json => $service_spec_json,
   poll_interval => $poll_interval,
   task_definition_arn => $task_definition_arn,

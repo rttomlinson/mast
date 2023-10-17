@@ -2,7 +2,7 @@
   "aws": {
     "region": "us-east-1"
   },
-  "version": "0",
+  "version": "1.0",
   "elb": {
     "loadBalancer": {
       "type": "network",

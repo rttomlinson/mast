@@ -7,18 +7,16 @@ use warnings;
 use Getopt::Long;
 use Mast::Deploy::Step;
 
-my ($environment, $service_spec_json);
+my ($service_spec_json);
 
 GetOptions(
-  'environment=s' => \$environment,
   'service-spec-json=s' => \$service_spec_json,
 )
   or die "Error in command line arguments\n";
 
-say "Environment: $environment";
 say "Service spec: $service_spec_json";
 
 update_current_active_service_tag_on_cluster(
-  environment => $environment,
+  environment => "placeholder",
   service_spec_json => $service_spec_json,
 );

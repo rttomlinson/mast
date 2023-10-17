@@ -10,12 +10,11 @@ use JSON::PP;
 use Mast::Deploy::Step;
 
 my (
-  $environment, $service_spec_json, $task_definition_arn, $overrides_json,
+  $service_spec_json, $task_definition_arn, $overrides_json,
   $poll_interval, $output_file,
 );
 
 GetOptions(
-  'environment=s' => \$environment,
   'service-spec-json=s' => \$service_spec_json,
   'task-definition-arn=s' => \$task_definition_arn,
   'service-overrides-json=s' => \$overrides_json,
@@ -28,7 +27,6 @@ die "Output file parameter is missing\n" unless length $output_file > 1;
 
 $poll_interval //= 10;
 
-say "Environment: $environment";
 say "Task definition ARN: $task_definition_arn";
 say "Service spec: $service_spec_json";
 say "ECS service overrides JSON: $overrides_json";
@@ -38,7 +36,7 @@ say "Poll interval (seconds): $poll_interval";
 my $overrides = decode_json($overrides_json // '{}');
 
 my $service_arn = create_or_update_ecs_service(
-  environment => $environment,
+  environment => "placeholder",
   service_spec_json => $service_spec_json,
   task_definition_arn => $task_definition_arn,
   overrides => $overrides,
@@ -46,5 +44,5 @@ my $service_arn = create_or_update_ecs_service(
 );
 
 open my $fh, ">", $output_file or die "Cannot open $output_file for writing: $!";
-say $fh qq|export service_arn='$service_arn'|;
+say $fh qq|service_arn=$service_arn|;
 close $fh;

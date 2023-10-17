@@ -21,10 +21,10 @@ my %next_status = (
 
 our $start_retries = 0;
 
-my $service_spec_json = read_file "t/data/spec/bar-baz-v1_1.json";
-my $env = "staging";
+my $service_spec_json = read_file "t/data/spec/bar-baz-v1_0.json";
+my $contexts = ["staging", "standby"];
 my $service_spec_obj = Mast::Service::Spec->new(
-  environment => $env,
+  contexts => $contexts,
   service_spec_json => $service_spec_json,
 );
 

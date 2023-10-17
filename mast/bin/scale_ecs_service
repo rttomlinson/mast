@@ -8,11 +8,10 @@ use Getopt::Long;
 use Scalar::Util 'looks_like_number';
 use Mast::Deploy::Step;
 
-my ($environment, $service_spec_json, $current_active_service_spec_json,
+my ($service_spec_json, $current_active_service_spec_json,
     $desired_count, $poll_interval);
 
 GetOptions(
-  'environment=s' => \$environment,
   'service-spec-json=s' => \$service_spec_json,
   'current-active-service-spec-json=s' => \$current_active_service_spec_json,
   'desired-count=s' => \$desired_count,
@@ -25,14 +24,13 @@ $poll_interval //= 10;
 undef $current_active_service_spec_json if $current_active_service_spec_json eq '';
 undef $desired_count unless looks_like_number $desired_count;
 
-say "Environment: $environment";
 say "Service spec: $service_spec_json";
 say "Current active service spec: " . ($current_active_service_spec_json // 'undefined');
 say "ECS service desired task count: " . ($desired_count // "(from service spec)");
 say "Poll interval (seconds): $poll_interval";
 
 scale_ecs_service(
-  environment => $environment,
+  environment => "placeholder",
   service_spec_json => $service_spec_json,
   current_active_service_spec_json => $current_active_service_spec_json,
   desired_count => $desired_count,

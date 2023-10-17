@@ -15,13 +15,10 @@ use Mast::AWS::ELB::LoadBalancer;
 use Mast::AWS::ELB::TargetGroup;
 
 sub update_listener_rules {
-  my ($self, $role) = @_;
+  my ($self,) = @_;
 
   my @modified;
   my $lb_specs = $self->spec->elb->{loadBalancers};
-
-  # Carry over from v<2.0
-  $lb_specs = collapser([$role], $lb_specs) if defined $role;
 
   my $lbs = $self->lbs($lb_specs);
   for my $lb (@$lbs) {
@@ -35,7 +32,7 @@ sub update_listener_rules {
         my $rule = $rules->[$index];
         my $tg_name = $rule->{rule_spec}->{action}->{targetGroupName};
         my $logging_index = $index + 1;
-        say qq|Working on "$role" rule #$logging_index of $rule_count|;
+        say qq|Working on rule #$logging_index of $rule_count|;
 
         my $target_group = Mast::AWS::ELB::TargetGroup->new(
           aws_region => $self->aws_region,
@@ -52,18 +49,18 @@ sub update_listener_rules {
         my @res;
 
         if ($resolved_rule) {
-          say qq|Updating "$role" rule #$index to forward traffic to target group $tg_name...|;
+          say qq|Updating rule #$index to forward traffic to target group $tg_name...|;
 
           @res = $rule->update($target_group);
 
-          say qq|Successfully updated "$role" listener rule #$index.|;
+          say qq|Successfully updated listener rule #$index.|;
         }
         else {
-          say qq|Could not find existing "$role" listener rule, creating a new rule...|;
+          say qq|Could not find existing listener rule, creating a new rule...|;
 
           @res = $rule->create($target_group);
 
-          say qq|Successfully created new "$role" listener rule forwarding traffic to $tg_name.|;
+          say qq|Successfully created new listener rule forwarding traffic to $tg_name.|;
         }
 
         push @modified, map {

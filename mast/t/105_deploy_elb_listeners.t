@@ -20,8 +20,8 @@ use AWS::MockCLIWrapper;
 
 # Need to test value validation test for different envs
 my $service_spec_json = read_file "t/data/spec/elb/valid-elb-network-ecs.json";
-my $env = "prestaging";
-my $service_spec_obj = Mast::Service::Spec->new(environment => $env, service_spec_json => $service_spec_json);
+my $contexts = ["prestaging", "standby"];
+my $service_spec_obj = Mast::Service::Spec->new(contexts => $contexts, service_spec_json => $service_spec_json);
 
 my $aws = AWS::MockCLIWrapper->new(
     aws_region => 'us-east-1',
@@ -336,7 +336,7 @@ for my $lb (@$lbs) {
 # This is part of the test above since it uses the same aws "state"
 # multi-nlb listeners test
 say "check that allowExisting on listeners required for version >=2.0";
-$service_spec_json = read_file "t/data/spec/elb/multi-elb-network-v2_0_no_allowExistingOnListeners.json";
+$service_spec_json = read_file "t/data/spec/elb/multi-elb-network-v1_0_no_allowExistingOnListeners.json";
 $service_spec_obj = Mast::Service::Spec->new(contexts => \@contexts, service_spec_json => $service_spec_json);
 $listeners = Mast::Deploy::Listeners->new(
     aws => $aws,
@@ -347,7 +347,7 @@ throws_ok {$listeners->update_listeners} qr/^(Trying to modify existing listener
 
 #########################################
 # Test ALB function limitations
-$service_spec_json = read_file "t/data/spec/bar-baz-v2_0_diff-albs-multi-tg.json";
+$service_spec_json = read_file "t/data/spec/bar-baz-v1_0_diff-albs-multi-tg.json";
 @contexts = ("staging", "active");
 $service_spec_obj = Mast::Service::Spec->new(environment => undef, service_spec_json => $service_spec_json, contexts => \@contexts);
 say "Create Listeners object";
