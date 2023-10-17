@@ -9,10 +9,10 @@ use lib 't/lib';
 use AWS::MockCLIWrapper;
 
 
-# my ($environment, $service_spec_json, $docker_username, $docker_password, $github_token) = ('dev', '{}', 'a', 'p', 'z');
-# get_service_spec_from_active_service_cluster_tag(
+# my ($environment, $cloud_spec_json, $docker_username, $docker_password, $github_token) = ('dev', '{}', 'a', 'p', 'z');
+# get_cloud_spec_from_active_service_cluster_tag(
 #     environment => $environment, 
-#     service_spec_json => $service_spec_json, 
+#     cloud_spec_json => $cloud_spec_json, 
 #     docker_username => $docker_username, 
 #     docker_password => $docker_password, 
 #     github_token => $github_token,

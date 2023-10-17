@@ -10,7 +10,7 @@ use File::Slurp;
 
 use JSON::PP;
 
-use Mast::Service::Spec;
+use Mast::Cloud::Spec;
 use Mast::Deploy::ListenerRules;
 
 use lib 't/lib';
@@ -19,9 +19,9 @@ use AWS::MockCLIWrapper;
 my $account_limits = join '', <DATA>;
 
 # Need to test value validation test for different envs
-my $service_spec_json = read_file "t/data/spec/test-baseline-valid-template.json";
+my $cloud_spec_json = read_file "t/data/spec/test-baseline-valid-template.json";
 my $contexts = ["prestaging", "standby"];
-my $service_spec_obj = Mast::Service::Spec->new(contexts => $contexts, service_spec_json => $service_spec_json);
+my $cloud_spec_obj = Mast::Cloud::Spec->new(contexts => $contexts, cloud_spec_json => $cloud_spec_json);
 
 # override describe-target-groups to just pretend that one already exists
 
@@ -133,7 +133,7 @@ my $aws = AWS::MockCLIWrapper->new(
 );
 # unsure how to mock specific function calls one-time. seems like advanced functionality. could just create multiple instances of MockCLIWrapper;
 my $lr = Mast::Deploy::ListenerRules->new(
-    service_spec => $service_spec_obj,
+    cloud_spec => $cloud_spec_obj,
     aws => $aws
 );
 
@@ -298,12 +298,12 @@ $aws = AWS::MockCLIWrapper->new(
 say "starting tests for v2.0";
 say "diff albs multi tg";
 # allow multiple application lb listener rules
-$service_spec_json = read_file "t/data/spec/bar-baz-v1_0_diff-albs-multi-tg.json";
+$cloud_spec_json = read_file "t/data/spec/bar-baz-v1_0_diff-albs-multi-tg.json";
 my @contexts = ("prestaging", "active");
-$service_spec_obj = Mast::Service::Spec->new(environment => undef, service_spec_json => $service_spec_json, contexts => \@contexts);
+$cloud_spec_obj = Mast::Cloud::Spec->new(environment => undef, cloud_spec_json => $cloud_spec_json, contexts => \@contexts);
 say "Create ListenerRules object";
 $lr = Mast::Deploy::ListenerRules->new(
-    service_spec => $service_spec_obj,
+    cloud_spec => $cloud_spec_obj,
     aws => $aws,
     aws_region => "us-east-1",
 );
@@ -311,7 +311,7 @@ $lr = Mast::Deploy::ListenerRules->new(
 is $lr->isa("Mast::Deploy::ListenerRules"), 1, "is the expected object";
 
 $lr->update_listener_rules;
-my $lb_specs = $service_spec_obj->elb->{loadBalancers};
+my $lb_specs = $cloud_spec_obj->elb->{loadBalancers};
 my @lbs = map {
     Mast::AWS::ELB::LoadBalancer->new(
       aws => $aws,
@@ -324,7 +324,7 @@ is scalar(@lbs), 2, "expected two lbs to be return";
 
 
 my %lb_rules = ();
-for my $lb_spec (@{$service_spec_obj->elb->{loadBalancers}}) {
+for my $lb_spec (@{$cloud_spec_obj->elb->{loadBalancers}}) {
     $lb_rules{$lb_spec->{name}} = $lb_spec->{listeners};
 }
 
@@ -367,12 +367,12 @@ foreach (@lbs) {
 
 # expect errors for listener rules on network load balancer type
 say "diff nlb multi tg. expect errors";
-$service_spec_json = read_file "t/data/spec/elb/multi-elb-network-v2_0.json";
+$cloud_spec_json = read_file "t/data/spec/elb/multi-elb-network-v2_0.json";
 @contexts = ("prestaging", "active");
-$service_spec_obj = Mast::Service::Spec->new(environment => undef, service_spec_json => $service_spec_json, contexts => \@contexts);
+$cloud_spec_obj = Mast::Cloud::Spec->new(environment => undef, cloud_spec_json => $cloud_spec_json, contexts => \@contexts);
 say "Create ListenerRules object";
 $lr = Mast::Deploy::ListenerRules->new(
-    service_spec => $service_spec_obj,
+    cloud_spec => $cloud_spec_obj,
     aws => $aws,
     aws_region => "us-east-1",
 );

@@ -8,12 +8,12 @@ use Getopt::Long;
 use Scalar::Util 'looks_like_number';
 use Mast::Deploy::Step;
 
-my ($service_spec_json, $current_active_service_spec_json,
+my ($cloud_spec_json, $current_active_cloud_spec_json,
     $desired_count, $poll_interval);
 
 GetOptions(
-  'service-spec-json=s' => \$service_spec_json,
-  'current-active-service-spec-json=s' => \$current_active_service_spec_json,
+  'cloud-spec-json=s' => \$cloud_spec_json,
+  'current-active-cloud-spec-json=s' => \$current_active_cloud_spec_json,
   'desired-count=s' => \$desired_count,
   'poll-interval=i' => \$poll_interval,
 )
@@ -21,18 +21,18 @@ GetOptions(
 
 $poll_interval //= 10;
 
-undef $current_active_service_spec_json if $current_active_service_spec_json eq '';
+undef $current_active_cloud_spec_json if $current_active_cloud_spec_json eq '';
 undef $desired_count unless looks_like_number $desired_count;
 
-say "Service spec: $service_spec_json";
-say "Current active service spec: " . ($current_active_service_spec_json // 'undefined');
+say "Cloud spec: $cloud_spec_json";
+say "Current active service spec: " . ($current_active_cloud_spec_json // 'undefined');
 say "ECS service desired task count: " . ($desired_count // "(from service spec)");
 say "Poll interval (seconds): $poll_interval";
 
 scale_ecs_service(
   environment => "placeholder",
-  service_spec_json => $service_spec_json,
-  current_active_service_spec_json => $current_active_service_spec_json,
+  cloud_spec_json => $cloud_spec_json,
+  current_active_cloud_spec_json => $current_active_cloud_spec_json,
   desired_count => $desired_count,
   poll_interval => $poll_interval,
 );

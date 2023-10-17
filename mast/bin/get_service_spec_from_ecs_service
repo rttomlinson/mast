@@ -33,7 +33,7 @@ say "Docker hub password: " . ($docker_password =~ s/./*/gr);
 say "Using " . (scalar @auth_tokens) . " Docker registry auth tokens";
 say "Github token: " . ($github_token =~ s/./*/gr);
 
-my ($service_spec_json, $spec_url) = Mast::Deploy::Step::get_service_spec_from_ecs_service(
+my ($cloud_spec_json, $spec_url) = Mast::Deploy::Step::get_cloud_spec_from_ecs_service(
   aws_region => $aws_region,
   cluster_name => $cluster_name,
   service_name => $service_name,
@@ -46,6 +46,6 @@ my ($service_spec_json, $spec_url) = Mast::Deploy::Step::get_service_spec_from_e
 say "Successfully retrieved service spec from $spec_url.";
 
 open my $fh, ">", $output_file or die "Cannot open $output_file for writing: $!";
-say $fh qq|export service_spec='$service_spec_json'|;
-say $fh qq|export service_spec_url='$spec_url'|;
+say $fh qq|export cloud_spec='$cloud_spec_json'|;
+say $fh qq|export cloud_spec_url='$spec_url'|;
 close $fh;

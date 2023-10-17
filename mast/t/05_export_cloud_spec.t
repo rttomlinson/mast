@@ -6,7 +6,7 @@ use Test::More;
 use File::Slurp;
 
 use JSON::PP;
-use Mast::Service::Spec;
+use Mast::Cloud::Spec;
 use Mast::Deploy::Step;
 
 my $tests = eval join '', <DATA>;
@@ -18,16 +18,16 @@ for my $test (sort keys %$tests) {
   my ($spec_from, $want_from, $contexts)
     = @$test_data{qw(spec_from want_from contexts)};
 
-  my $service_spec = read_file $spec_from;
+  my $cloud_spec = read_file $spec_from;
   my $want = eval read_file $want_from;
 
   die "$@" if $@;
 
   my $have = eval {
-    Mast::Deploy::Step::validate_service_spec(
-      service_spec_json => $service_spec,
+    Mast::Deploy::Step::validate_cloud_spec(
+      cloud_spec_json => $cloud_spec,
       contexts => $contexts,
-    )->service_spec
+    )->cloud_spec
   };
 
   is "$@", "", "$test new no exception";

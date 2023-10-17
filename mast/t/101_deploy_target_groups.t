@@ -10,16 +10,16 @@ use File::Slurp;
 
 use JSON::PP;
 
-use Mast::Service::Spec;
+use Mast::Cloud::Spec;
 use Mast::Deploy::TargetGroups;
 
 use lib 't/lib';
 use AWS::MockCLIWrapper;
 
 # Need to test value validation test for different envs
-my $service_spec_json = read_file "t/data/spec/test-baseline-valid-template.json";
+my $cloud_spec_json = read_file "t/data/spec/test-baseline-valid-template.json";
 my $contexts = ["prestaging", "standby"];
-my $service_spec_obj = Mast::Service::Spec->new(contexts => $contexts, service_spec_json => $service_spec_json);
+my $cloud_spec_obj = Mast::Cloud::Spec->new(contexts => $contexts, cloud_spec_json => $cloud_spec_json);
 my $aws = AWS::MockCLIWrapper->new(
     aws_region => 'us-east-1',
     mock_aws_state => {
@@ -119,7 +119,7 @@ my $aws = AWS::MockCLIWrapper->new(
 );
 # unsure how to mock specific function calls one-time. seems like advanced functionality. could just create multiple instances of MockCLIWrapper;
 my $tgs = Mast::Deploy::TargetGroups->new(
-    service_spec => $service_spec_obj,
+    cloud_spec => $cloud_spec_obj,
     aws => $aws
 );
 

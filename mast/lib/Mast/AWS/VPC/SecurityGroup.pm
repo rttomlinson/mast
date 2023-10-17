@@ -13,17 +13,17 @@ use AWS::CLIWrapper;
 sub new {
   my ($class, %params) = @_;
 
-  my $service_spec = $params{service_spec};
+  my $cloud_spec = $params{cloud_spec};
 
-  confess 'Expected Mast::Service::Spec object as "service_spec" parameter'
-    unless $service_spec and $service_spec->isa('Mast::Service::Spec');
+  confess 'Expected Mast::Cloud::Spec object as "cloud_spec" parameter'
+    unless $cloud_spec and $cloud_spec->isa('Mast::Cloud::Spec');
 
   my $aws = AWS::CLIWrapper->new(
-    region => $service_spec->aws_region,
+    region => $cloud_spec->aws_region,
     croak_on_error => 1,
   );
 
-  bless { aws => $aws, spec => $service_spec }, $class;
+  bless { aws => $aws, spec => $cloud_spec }, $class;
 }
 
 sub describe {

@@ -1,4 +1,4 @@
-# Service specification for baz.
+# Cloud specification for baz.
 
 # This document contains most if not all of the parameters we need to successfully deploy
 # the service. Most of the top level objects like `elb` and `ecs` are modeled after

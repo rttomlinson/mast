@@ -7,10 +7,10 @@ use warnings;
 use Getopt::Long;
 use Mast::Deploy::Step;
 
-my ($service_spec_json, $test_name, $poll_interval);
+my ($cloud_spec_json, $test_name, $poll_interval);
 
 GetOptions(
-  'service-spec-json=s' => \$service_spec_json,
+  'cloud-spec-json=s' => \$cloud_spec_json,
   'test-name=s' => \$test_name,
   'poll-interval=i' => \$poll_interval,
 )
@@ -18,13 +18,13 @@ GetOptions(
 
 $poll_interval //= 10;
 
-say "Service spec: $service_spec_json";
+say "Cloud spec: $cloud_spec_json";
 say "Test suite name: $test_name";
 say "Poll interval: $poll_interval (seconds)";
 
 my $exit_code = run_test(
   environment => "placeholder",
-  service_spec_json => $service_spec_json,
+  cloud_spec_json => $cloud_spec_json,
   test_name => $test_name,
   poll_interval => $poll_interval,
 );

@@ -32,8 +32,8 @@ sub handle {
     say @p_args;
     # system("perl", @p_args) == 0
     #     or die "system perl @p_args failed: $?";
-    # system("perl", "/opt/bin/$step_name", "--environment", "$environment", "--service-spec-json" $service_spec_json,); 
-    # my $files = `perl /opt/bin/validate_service_spec --environment $val --service-spec-json "{}"`;
+    # system("perl", "/opt/bin/$step_name", "--environment", "$environment", "--cloud-spec-json" $cloud_spec_json,); 
+    # my $files = `perl /opt/bin/validate_cloud_spec --environment $val --cloud-spec-json "{}"`;
     # say $files;
     # if output file exists, read from output file and populate the return payload
     if (defined $payload->{output_file}) {

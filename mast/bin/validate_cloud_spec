@@ -9,27 +9,27 @@ use Getopt::Long;
 use Mast::Deploy::Step;
 Getopt::Long::Configure("pass_through");
 
-my (@contexts, $service_spec_json, $output_file);
+my (@contexts, $cloud_spec_json, $output_file);
 
 GetOptions(
   'context=s' => \@contexts,
-  'service-spec-json=s' => \$service_spec_json,
+  'cloud-spec-json=s' => \$cloud_spec_json,
   'output-file=s' => \$output_file,
 )
   or die "Error in command line arguments\n";
 
 say "Contexts: @contexts";
-say "Service spec: $service_spec_json";
+say "Cloud spec: $cloud_spec_json";
 
-my $actualized_spec = validate_service_spec(
+my $actualized_spec = validate_cloud_spec(
   contexts => \@contexts,
-  service_spec_json => $service_spec_json,
+  cloud_spec_json => $cloud_spec_json,
 );
 
 # Output is optional
 if ($output_file) {
   open my $fh, ">", $output_file or die "Cannot open $output_file for writing: $!\n";
-  my $json_encoded_service_spec = encode_json $actualized_spec->service_spec;
-  say $fh qq|service_spec_json=$json_encoded_service_spec|;
+  my $json_encoded_cloud_spec = encode_json $actualized_spec->cloud_spec;
+  say $fh qq|cloud_spec_json=$json_encoded_cloud_spec|;
   close $fh;
 }

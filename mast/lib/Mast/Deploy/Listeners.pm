@@ -9,7 +9,7 @@ use Carp 'confess';
 
 use parent 'Mast::Deploy::Base';
 
-use Mast::Service::Spec;
+use Mast::Cloud::Spec;
 use Mast::AWS::ELB::LoadBalancer;
 use Mast::AWS::ELB::TargetGroup;
 

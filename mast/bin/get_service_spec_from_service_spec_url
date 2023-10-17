@@ -8,11 +8,11 @@ no warnings 'uninitialized';
 use Getopt::Long;
 use Mast::Deploy::Step;
 
-my ($service_spec_url, $github_token, $docker_username, $docker_password, $output_file);
+my ($cloud_spec_url, $github_token, $docker_username, $docker_password, $output_file);
 my @auth_tokens;
 
 GetOptions(
-  'service-spec-url=s' => \$service_spec_url,
+  'service-spec-url=s' => \$cloud_spec_url,
   'github-token=s' => \$github_token,
   'docker-username=s' => \$docker_username,
   'docker-password=s' => \$docker_password,
@@ -23,23 +23,23 @@ GetOptions(
 
 die "Output file parameter is missing\n" unless length $output_file > 1;
 
-say "Using service spec url: $service_spec_url";
+say "Using service spec url: $cloud_spec_url";
 say "Using Github token: " . ($github_token =~ s/./*/gr);
 say "Using docker hub username: $docker_username";
 say "Using docker hub password: " . ($docker_password =~ s/./*/gr);
 say "Using " . (scalar @auth_tokens) . " Docker registry auth tokens";
 
 # Could consider determining which creds to pass here
-my $service_spec_document = get_service_spec_from_service_spec_url(
-  service_spec_url => $service_spec_url,
+my $cloud_spec_document = get_cloud_spec_from_cloud_spec_url(
+  cloud_spec_url => $cloud_spec_url,
   github_token => $github_token,
   docker_username => $docker_username,
   docker_password => $docker_password,
   docker_registry_tokens => \@auth_tokens,
 );
 
-say "Successfully retrieved service spec document from $service_spec_url.";
+say "Successfully retrieved service spec document from $cloud_spec_url.";
 
 open my $fh, ">", $output_file or die "Cannot open $output_file for writing: $!";
-say $fh $service_spec_document;
+say $fh $cloud_spec_document;
 close $fh;

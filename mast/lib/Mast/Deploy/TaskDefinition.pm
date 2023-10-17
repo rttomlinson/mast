@@ -10,15 +10,15 @@ use Carp 'confess';
 use parent 'Mast::Deploy::Base';
 
 use JSON::PP;
-use Mast::Service::Spec;
+use Mast::Cloud::Spec;
 use Mast::AWS::ECS::TaskDefinition;
 
 sub create_task_definition {
   my ($self, %params) = @_;
   my ($spec,) = @$self{'spec'};
-  my $spec_url = $params{service_spec_url};
+  my $spec_url = $params{cloud_spec_url};
 
-  confess "Service spec URL is required" unless length $spec_url > 1;
+  confess "Cloud spec URL is required" unless length $spec_url > 1;
 
   my $task_def = $spec->ecs->{taskDefinition};
   my $family = $task_def->{family} || $spec->ecs->{service}->{name};
@@ -40,7 +40,7 @@ sub create_task_definition {
   say "Creating ECS task definition in family $family...";
 
   my $task_definition_arn = $task_def_obj->create(
-    service_spec_url => $spec_url
+    cloud_spec_url => $spec_url
   );
   
   say "Successfully created task definition with ARN: $task_definition_arn";

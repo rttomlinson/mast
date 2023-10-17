@@ -10,18 +10,18 @@ use File::Slurp;
 
 use JSON::PP;
 
-use Mast::Service::Spec;
+use Mast::Cloud::Spec;
 use Mast::Deploy::Listeners;
 use Mast::Deploy::TargetGroups;
-use Mast::Service::Spec 'collapser';
+use Mast::Cloud::Spec 'collapser';
 
 use lib 't/lib';
 use AWS::MockCLIWrapper;
 
 # Need to test value validation test for different envs
-my $service_spec_json = read_file "t/data/spec/elb/valid-elb-network-ecs.json";
+my $cloud_spec_json = read_file "t/data/spec/elb/valid-elb-network-ecs.json";
 my $contexts = ["prestaging", "standby"];
-my $service_spec_obj = Mast::Service::Spec->new(contexts => $contexts, service_spec_json => $service_spec_json);
+my $cloud_spec_obj = Mast::Cloud::Spec->new(contexts => $contexts, cloud_spec_json => $cloud_spec_json);
 
 my $aws = AWS::MockCLIWrapper->new(
     aws_region => 'us-east-1',
@@ -87,20 +87,20 @@ my $aws = AWS::MockCLIWrapper->new(
 # create the target group
 my $tgs = Mast::Deploy::TargetGroups->new(
     aws => $aws,
-    service_spec => $service_spec_obj,
+    cloud_spec => $cloud_spec_obj,
 );
 $tgs->create_target_groups;
 
 my $listeners = Mast::Deploy::Listeners->new(
     aws => $aws,
-    service_spec => $service_spec_obj,
+    cloud_spec => $cloud_spec_obj,
 );
 
 is $listeners->isa("Mast::Deploy::Listeners"), 1, "is the expected object";
 
 $listeners->update_listeners;
 
-my $lb_specs = $service_spec_obj->elb->{loadBalancers};
+my $lb_specs = $cloud_spec_obj->elb->{loadBalancers};
 
 my $lbs = $listeners->lbs($lb_specs);
 for my $lb (@$lbs) {
@@ -114,7 +114,7 @@ for my $lb (@$lbs) {
 throws_ok {$listeners->update_listeners} qr/^(Trying to modify existing listener with arn:)(.*)(but allowExisting on the listener_spec not set to true. Aborting.)/, "expect upserting nlbs in spec version <2.0 to fail";
 
 
-$lb_specs = $service_spec_obj->elb->{loadBalancers};
+$lb_specs = $cloud_spec_obj->elb->{loadBalancers};
 
 $lbs = $listeners->lbs($lb_specs);
 for my $lb (@$lbs) {
@@ -125,7 +125,7 @@ for my $lb (@$lbs) {
 }
 
 $listeners->delete_listeners;
-$lb_specs = $service_spec_obj->elb->{loadBalancers};
+$lb_specs = $cloud_spec_obj->elb->{loadBalancers};
 
 $lbs = $listeners->lbs($lb_specs);
 for my $lb (@$lbs) {
@@ -139,9 +139,9 @@ for my $lb (@$lbs) {
 #############################
 
 # multi-nlb listeners test
-$service_spec_json = read_file "t/data/spec/elb/multi-elb-network-v2_0.json";
+$cloud_spec_json = read_file "t/data/spec/elb/multi-elb-network-v2_0.json";
 my @contexts = ("prestaging");
-$service_spec_obj = Mast::Service::Spec->new(contexts => \@contexts, service_spec_json => $service_spec_json);
+$cloud_spec_obj = Mast::Cloud::Spec->new(contexts => \@contexts, cloud_spec_json => $cloud_spec_json);
 
 $aws = AWS::MockCLIWrapper->new(
     aws_region => 'us-east-1',
@@ -287,20 +287,20 @@ $aws = AWS::MockCLIWrapper->new(
 
 $tgs = Mast::Deploy::TargetGroups->new(
     aws => $aws,
-    service_spec => $service_spec_obj,
+    cloud_spec => $cloud_spec_obj,
 );
 $tgs->create_target_groups;
 
 $listeners = Mast::Deploy::Listeners->new(
     aws => $aws,
-    service_spec => $service_spec_obj,
+    cloud_spec => $cloud_spec_obj,
 );
 
 is $listeners->isa("Mast::Deploy::Listeners"), 1, "is the expected object";
 
 $listeners->update_listeners;
 
-$lb_specs = $service_spec_obj->elb->{loadBalancers};
+$lb_specs = $cloud_spec_obj->elb->{loadBalancers};
 
 $lbs = $listeners->lbs($lb_specs);
 for my $lb (@$lbs) {
@@ -311,7 +311,7 @@ for my $lb (@$lbs) {
 }
 
 $listeners->update_listeners;
-$lb_specs = $service_spec_obj->elb->{loadBalancers};
+$lb_specs = $cloud_spec_obj->elb->{loadBalancers};
 
 $lbs = $listeners->lbs($lb_specs);
 for my $lb (@$lbs) {
@@ -322,7 +322,7 @@ for my $lb (@$lbs) {
 }
 
 $listeners->delete_listeners;
-$lb_specs = $service_spec_obj->elb->{loadBalancers};
+$lb_specs = $cloud_spec_obj->elb->{loadBalancers};
 
 $lbs = $listeners->lbs($lb_specs);
 for my $lb (@$lbs) {
@@ -336,23 +336,23 @@ for my $lb (@$lbs) {
 # This is part of the test above since it uses the same aws "state"
 # multi-nlb listeners test
 say "check that allowExisting on listeners required for version >=2.0";
-$service_spec_json = read_file "t/data/spec/elb/multi-elb-network-v1_0_no_allowExistingOnListeners.json";
-$service_spec_obj = Mast::Service::Spec->new(contexts => \@contexts, service_spec_json => $service_spec_json);
+$cloud_spec_json = read_file "t/data/spec/elb/multi-elb-network-v1_0_no_allowExistingOnListeners.json";
+$cloud_spec_obj = Mast::Cloud::Spec->new(contexts => \@contexts, cloud_spec_json => $cloud_spec_json);
 $listeners = Mast::Deploy::Listeners->new(
     aws => $aws,
-    service_spec => $service_spec_obj,
+    cloud_spec => $cloud_spec_obj,
 );
 $listeners->update_listeners;
 throws_ok {$listeners->update_listeners} qr/^(Trying to modify existing listener with arn:)(.*)(but allowExisting on the listener_spec not set to true. Aborting.)/, "expect upserting nlbs in spec version <2.0 to fail";
 
 #########################################
 # Test ALB function limitations
-$service_spec_json = read_file "t/data/spec/bar-baz-v1_0_diff-albs-multi-tg.json";
+$cloud_spec_json = read_file "t/data/spec/bar-baz-v1_0_diff-albs-multi-tg.json";
 @contexts = ("staging", "active");
-$service_spec_obj = Mast::Service::Spec->new(environment => undef, service_spec_json => $service_spec_json, contexts => \@contexts);
+$cloud_spec_obj = Mast::Cloud::Spec->new(environment => undef, cloud_spec_json => $cloud_spec_json, contexts => \@contexts);
 say "Create Listeners object";
 my $lr = Mast::Deploy::Listeners->new(
-    service_spec => $service_spec_obj,
+    cloud_spec => $cloud_spec_obj,
     aws => $aws,
     aws_region => "us-east-1",
 );

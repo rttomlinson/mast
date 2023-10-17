@@ -7,7 +7,7 @@ no warnings 'uninitialized', 'unopened';
 use Carp 'confess';
 
 use JSON::PP;
-use Mast::Service::Spec;
+use Mast::Cloud::Spec;
 use Mast::AWS::ECS::Service;
 use Mast::Deploy::ListenerRules;
 use Mast::AWS::Route53::Zone;

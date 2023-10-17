@@ -4,7 +4,7 @@ use strictures 2;
 use Test::More;
 use File::Slurp;
 
-use Mast::Service::Spec;
+use Mast::Cloud::Spec;
 
 my $tests = eval join '', <DATA> or die "$@";
 
@@ -16,12 +16,12 @@ for my $test (sort keys %$tests) {
     = @$test_data{qw(contexts spec_from exception)};
   $xcpt = qr/$xcpt/ unless 'RegExp' eq ref $xcpt;
 
-  my $service_spec_json = read_file $spec_from;
+  my $cloud_spec_json = read_file $spec_from;
 
   eval {
-    Mast::Service::Spec->new(
+    Mast::Cloud::Spec->new(
       contexts => $contexts,
-      service_spec_json => $service_spec_json
+      cloud_spec_json => $cloud_spec_json
     )
   };
 

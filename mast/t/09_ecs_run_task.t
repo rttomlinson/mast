@@ -5,7 +5,7 @@ no warnings 'uninitialized';
 use Test::More;
 use File::Slurp;
 
-use Mast::Service::Spec;
+use Mast::Cloud::Spec;
 use Mast::Deploy::Service;
 use Mast::AWS::ECS::Task;
 
@@ -21,14 +21,14 @@ my %next_status = (
 
 our $start_retries = 0;
 
-my $service_spec_json = read_file "t/data/spec/bar-baz-v1_0.json";
+my $cloud_spec_json = read_file "t/data/spec/bar-baz-v1_0.json";
 my $contexts = ["staging", "standby"];
-my $service_spec_obj = Mast::Service::Spec->new(
+my $cloud_spec_obj = Mast::Cloud::Spec->new(
   contexts => $contexts,
-  service_spec_json => $service_spec_json,
+  cloud_spec_json => $cloud_spec_json,
 );
 
-my $task_spec = $service_spec_obj->ecs->{tasks}->{standbySmokeTest};
+my $task_spec = $cloud_spec_obj->ecs->{tasks}->{standbySmokeTest};
 my $task_def = $task_spec->{taskDefinition};
 my $network_configuration = $task_spec->{networkConfiguration};
 my $task_def_arn = "arn:foo:bar:taskdefinition:1234";

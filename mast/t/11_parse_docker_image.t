@@ -4,7 +4,7 @@ no warnings 'uninitialized';
 
 use Test::More;
 
-use Mast::Service::Metadata;
+use Mast::Cloud::Metadata;
 
 my $tests = eval join '', <DATA> or die "$@";
 
@@ -15,7 +15,7 @@ for my $test (@$tests) {
 
   my @have;
 
-  eval { @have = Mast::Service::Metadata::_parse_docker_image_name($input) };
+  eval { @have = Mast::Cloud::Metadata::_parse_docker_image_name($input) };
 
   is "$@", "", "$name no exception";
   is_deeply \@have, $want, "$name output"

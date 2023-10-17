@@ -1,7 +1,7 @@
 Mast
 =====
 
-Mast is a collection of software that defines a Service Spec and functions that operate using the spec. The Service Spec strives to make no assumptions about HOW deployments should happen, but only to describe the configuration of resources within a given environment. An instance of the spec is an immutable document that is only constructed once and never modified. Any changes to the document will yield a new instance of the spec.
+Mast is a collection of software that defines a Cloud Spec and functions that operate using the spec. The Cloud Spec strives to make no assumptions about HOW deployments should happen, but only to describe the configuration of resources within a given environment. An instance of the spec is an immutable document that is only constructed once and never modified. Any changes to the document will yield a new instance of the spec.
 
 Building the Docker image:
 

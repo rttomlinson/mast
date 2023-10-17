@@ -28,7 +28,7 @@
 # # TODO Clean up all other tag variable uses except CONTAINER_TAG
 # CONTAINER_TAG := $(GIT_COMMIT_TAG)
 # GIT_BRANCH_HASH := $(shell $(BUILD_TOOLS) sha256 $(GIT_BRANCH) 8)
-# GET_SERVICE_SPEC := $(BUILD_TOOLS) get_validated_spec \
+# GET_CLOUD_SPEC := $(BUILD_TOOLS) get_validated_spec \
 # 		--token BUILD_NUMBER=${BUILD_NUMBER} \
 # 		--token BUILD_VERSION=${BUILD_VERSION} \
 # 		--token GIT_BRANCH=${GIT_BRANCH} \
@@ -56,13 +56,13 @@
 
 # .PHONY: echo-nexus-service-spec
 # echo-nexus-service-spec:
-# 	@SERVICE_SPEC=$$(${GET_SERVICE_SPEC} < ${NEXUS_SERVICE_SPEC}) && \
-# 		echo "$$SERVICE_SPEC"
+# 	@CLOUD_SPEC=$$(${GET_CLOUD_SPEC} < ${NEXUS_CLOUD_SPEC}) && \
+# 		echo "$$CLOUD_SPEC"
 
 # .PHONY: echo-graphql-service-spec
 # echo-graphql-service-spec:
-# 	@SERVICE_SPEC=$$(${GET_SERVICE_SPEC} < ${GRAPHQL_SERVICE_SPEC}) && \
-# 		echo "$$SERVICE_SPEC"
+# 	@CLOUD_SPEC=$$(${GET_CLOUD_SPEC} < ${GRAPHQL_CLOUD_SPEC}) && \
+# 		echo "$$CLOUD_SPEC"
 
 # .PHONY: help build-all
 # .PHONY: docker-push-all-%
@@ -240,7 +240,7 @@
 # .PHONY: graphql-build-mock
 # graphql-build-mock: graphql-clean graphql-prep
 # 	rsync -a ./graphql/Dockerfile.mock ./build/graphql
-# 	SERVICE_SPEC=$$(${GET_SERVICE_SPEC} < ${GRAPHQL_SERVICE_SPEC}) && \
+# 	CLOUD_SPEC=$$(${GET_CLOUD_SPEC} < ${GRAPHQL_CLOUD_SPEC}) && \
 # 	docker image build \
 # 		-f ./build/graphql/Dockerfile.mock \
 # 		-t $(REPO_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-graphql-mock:$(GIT_COMMIT_TAG) \
@@ -248,7 +248,7 @@
 # 			--label git_branch=$(GIT_BRANCH) \
 # 			--label feature_branch_hostname=$(FEATURE_BRANCH_HOSTNAME) \
 # 			--label github_pr_id=$(GITHUB_PR_ID) \
-# 			--label service_spec="$$SERVICE_SPEC" \
+# 			--label cloud_spec="$$CLOUD_SPEC" \
 # 			--build-arg git_commit_tag=$(GIT_COMMIT_TAG) \
 # 			--build-arg mock_scenario=$(MOCK_SCENARIO) \
 # 			./build/graphql	
@@ -270,14 +270,14 @@
 
 # .PHONY: graphql-build-final
 # graphql-build-final: graphql-clean graphql-prep graphql-output
-# 	SERVICE_SPEC=$$(${GET_SERVICE_SPEC} < ${GRAPHQL_SERVICE_SPEC}) && \
+# 	CLOUD_SPEC=$$(${GET_CLOUD_SPEC} < ${GRAPHQL_CLOUD_SPEC}) && \
 # 	docker image build --pull \
 # 		-f ./build/graphql-output/Dockerfile.prod \
 # 		-t $(REPO_PREFIX)/$(BASE_REPO)/$(BASE_REPO)-graphql:$(GIT_COMMIT_TAG) \
 # 			--label git_branch=$(GIT_BRANCH) \
 # 			--label feature_branch_hostname=$(FEATURE_BRANCH_HOSTNAME) \
 # 			--label github_pr_id=$(GITHUB_PR_ID) \
-# 			--label service_spec="$$SERVICE_SPEC" \
+# 			--label cloud_spec="$$CLOUD_SPEC" \
 # 			--label build_number="$(BUILD_NUMBER)" \
 # 			--label build_job_url="$(BUILD_URL)" \
 # 			--build-arg BUILD_VERSION=$(BUILD_VERSION) \
@@ -385,7 +385,7 @@
 # ui-build-final: ui-output
 # 	rsync -av ./buildfiles/$(BASE_REPO)-nexus/ ./build/ui/output/
 # 	CHANGELOG=$$(${GIT_CHANGELOG} | ${JSONIFY_CHANGELOG}) \
-# 	SERVICE_SPEC=$$(${GET_SERVICE_SPEC} < ${NEXUS_SERVICE_SPEC}) && \
+# 	CLOUD_SPEC=$$(${GET_CLOUD_SPEC} < ${NEXUS_CLOUD_SPEC}) && \
 # 	MSG_1=$$(cat ${APPROVAL_MSG_1}) && \
 # 	MSG_2=$$(cat ${APPROVAL_MSG_2}) && \
 # 	MSG_3=$$(cat ${RELEASE_NOTIFICATION_MSG}) && \
@@ -395,7 +395,7 @@
 # 			--label git_branch=$(GIT_BRANCH) \
 # 			--label feature_branch_hostname=$(FEATURE_BRANCH_HOSTNAME) \
 # 			--label github_pr_id=$(GITHUB_PR_ID) \
-# 			--label service_spec="$$SERVICE_SPEC" \
+# 			--label cloud_spec="$$CLOUD_SPEC" \
 # 			--label changelog="$$CHANGELOG" \
 # 			--label build_number="$(BUILD_NUMBER)" \
 # 			--label build_job_url="$(BUILD_URL)" \
@@ -460,8 +460,8 @@
 # 			./build/cypress
 # 	make cypress-clean
 
-YAML_SPEC_INPUT_FILENAME?=green_service_spec.yaml
-JSON_SPEC_OUTPUT_FILENAME?=green_service_spec.json
+YAML_SPEC_INPUT_FILENAME?=green_cloud_spec.yaml
+JSON_SPEC_OUTPUT_FILENAME?=green_cloud_spec.json
 .PHONY: convert
 convert:
 	yq -o=json -I=2 ${YAML_SPEC_INPUT_FILENAME} > ${JSON_SPEC_OUTPUT_FILENAME}
@@ -483,11 +483,11 @@ pprepare:
 YAML_MANIFEST_SPEC_INPUT_FILENAME?=service_manifest.yaml
 .PHONY: test_service_manifest
 test_service_manifest:
-	yq -o=json -I=2 ${YAML_MANIFEST_SPEC_INPUT_FILENAME} | jq '{"input": {"execution_state": {}, "deployment_spec": .deployment_spec, "state": {"service_spec_json": (.service_spec|tostring) }}}'
+	yq -o=json -I=2 ${YAML_MANIFEST_SPEC_INPUT_FILENAME} | jq '{"input": {"execution_state": {}, "deployment_spec": .deployment_spec, "state": {"cloud_spec_json": (.cloud_spec|tostring) }}}'
 
 .PHONY: step_service_manifest
 step_service_manifest:
-	yq -o=json -I=2 ${YAML_MANIFEST_SPEC_INPUT_FILENAME} | jq '{"execution_state": {}, "deployment_spec": .deployment_spec, "state": {"service_spec_json": (.service_spec|tostring) }}'
+	yq -o=json -I=2 ${YAML_MANIFEST_SPEC_INPUT_FILENAME} | jq '{"execution_state": {}, "deployment_spec": .deployment_spec, "state": {"cloud_spec_json": (.cloud_spec|tostring) }}'
 
 
 
