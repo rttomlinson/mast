@@ -78,57 +78,99 @@ sub target_group_name {
 
 sub create {
   my ($self, %params) = @_;
-  confess "create function for ELB types other than network are not supported at this time. You provided $self->{lb_type}" if ($self->{lb_type} ne 'network');
 
-  my ($target_group_arn) = @params{qw(target_group_arn)};
-  my @listeners = do {
-    my $res = $self->{aws}->elbv2('create-listener', {
-      'load-balancer-arn' => $self->lb_arn,
-      'protocol' => $self->protocol,
-      'port' => $self->port,
-      'default-actions' => [{
-        Type => 'forward',
-        TargetGroupArn => $target_group_arn,
-      }] # only assume 1 action
-    });
+  if($self->{lb_type} eq 'network') {
+    my ($target_group_arn) = @params{qw(target_group_arn)};
+    my @listeners = do {
+      my $res = $self->{aws}->elbv2('create-listener', {
+        'load-balancer-arn' => $self->lb_arn,
+        'protocol' => $self->protocol,
+        'port' => $self->port,
+        'default-actions' => [{
+          Type => 'forward',
+          TargetGroupArn => $target_group_arn,
+        }] # only assume 1 action
+      });
 
-    @{ $res->{Listeners} };
-  };
-  # only expect 1 listener to ever be created
-  return $listeners[0];
+      @{ $res->{Listeners} };
+    };
+    # only expect 1 listener to ever be created
+    return $listeners[0];
+
+  } elsif($self->{lb_type} eq 'application') {
+    my @listeners = do {
+      my $res = $self->{aws}->elbv2('create-listener', {
+        'load-balancer-arn' => $self->lb_arn,
+        'protocol' => $self->protocol,
+        'port' => $self->port,
+        'default-actions' => [{
+          Type => 'fixed-response',
+          FixedResponseConfig => {
+            MessageBody => "naughty naughty",
+            StatusCode => "503",
+            ContentType => "text/plain"
+          },
+        }] # only assume 1 action
+      });
+
+      @{ $res->{Listeners} };
+    };
+    # only expect 1 listener to ever be created
+    return $listeners[0];
+  }
 
 }
 
 sub modify {
   my ($self, %params) = @_;
-  confess "modify function for ELB types other than network are not supported at this time. You provided $self->{lb_type}" if ($self->{lb_type} ne 'network');
+  if($self->{lb_type} eq 'network') {
+    my $port = $self->port;
+    my $protocol = $self->protocol;
+    my $target_group_arn = $params{target_group_arn};
+    my $res;
 
-  my $port = $self->port;
-  my $protocol = $self->protocol;
-  my $target_group_arn = $params{target_group_arn};
-  my $res;
+    # Let the error be thrown here as well since we want to fail on unsuccessful listener modification
+    my @listeners = do {
+      $res = $self->{aws}->elbv2('modify-listener', {
+        'listener-arn' => $self->arn,
+        'protocol' => $protocol,
+        'port' => $port,
+        'default-actions' => [{
+          Type => 'forward',
+          TargetGroupArn => $target_group_arn,
+        }] # only assume 1 action
+      });
 
-  # Let the error be thrown here as well since we want to fail on unsuccessful listener modification
-  my @listeners = do {
-    $res = $self->{aws}->elbv2('modify-listener', {
-      'listener-arn' => $self->arn,
-      'protocol' => $protocol,
-      'port' => $port,
-      'default-actions' => [{
-        Type => 'forward',
-        TargetGroupArn => $target_group_arn,
-      }] # only assume 1 action
-    });
+      say qq|Successfully updated existing listener forwarding traffic to $target_group_arn.|;
+      @{ $res->{Listeners} };
+    };
+    return $listeners[0];
 
-    say qq|Successfully updated existing listener forwarding traffic to $target_group_arn.|;
-    @{ $res->{Listeners} };
-  };
-  return $listeners[0];
+  } elsif($self->{lb_type} eq 'application') {
+    my @listeners = do {
+      my $res = $self->{aws}->elbv2('create-listener', {
+        'load-balancer-arn' => $self->lb_arn,
+        'protocol' => $self->protocol,
+        'port' => $self->port,
+        'default-actions' => [{
+          Type => 'fixed-response',
+          FixedResponseConfig => {
+            MessageBody => "naughty naughty",
+            StatusCode => "503",
+            ContentType => "text/plain"
+          },
+        }] # only assume 1 action
+      });
+
+      @{ $res->{Listeners} };
+    };
+    # only expect 1 listener to ever be created
+    return $listeners[0];
+  }
 }
 
 sub delete {
   my ($self,) = @_;
-  confess "delete function for ELB types other than network are not supported at this time. You provided $self->{lb_type}" if ($self->{lb_type} ne 'network');
 
   my $listener_arn = $self->arn;
   my @listeners = do {

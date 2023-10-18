@@ -68,8 +68,6 @@ sub handle {
         # $decoded_json->{$key} = $value;
 
     }
-    # $payload->{global_state} = encode_json($decoded_json);
-    # $payload->{$output_key} = \%result_output;
     close $info;
     return \%result_output;
 }

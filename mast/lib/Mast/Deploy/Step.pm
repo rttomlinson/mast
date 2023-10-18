@@ -314,7 +314,7 @@ sub update_elb_listeners {
         = @params{qw(contexts cloud_spec_json)};
 
     my $cloud_spec = Mast::Cloud::Spec->new(
-        contexts => [],
+        contexts => $contexts,
         cloud_spec_json => $cloud_spec_json,
     );
 

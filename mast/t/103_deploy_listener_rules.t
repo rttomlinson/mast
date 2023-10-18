@@ -367,7 +367,7 @@ foreach (@lbs) {
 
 # expect errors for listener rules on network load balancer type
 say "diff nlb multi tg. expect errors";
-$cloud_spec_json = read_file "t/data/spec/elb/multi-elb-network-v2_0.json";
+$cloud_spec_json = read_file "t/data/spec/elb/multi-elb-network-v1_0.json";
 @contexts = ("prestaging", "active");
 $cloud_spec_obj = Mast::Cloud::Spec->new(environment => undef, cloud_spec_json => $cloud_spec_json, contexts => \@contexts);
 say "Create ListenerRules object";

@@ -306,7 +306,6 @@ sub elb_tag_target_groups {
 
 sub elb_describe_load_balancers {
   my ($self, $args, %additional_params) = @_;
-
   if (defined $self->{aws_state}->{load_balancers}) {
     if (defined $args->{names}) {
       my @matching_lbs = grep { my $lb = $_; grep( /^$lb->{LoadBalancerName}$/, @{$args->{names}}) } @{$self->{aws_state}->{load_balancers}->{LoadBalancers}};

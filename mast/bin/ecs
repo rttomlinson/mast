@@ -1,0 +1,50 @@
+#!/usr/bin/perl
+
+$| = 1;
+use v5.030;
+use warnings;
+no warnings 'uninitialized';
+
+use Getopt::Long;
+use JSON::PP;
+use Mast::Deploy::Step;
+
+# move steps here
+
+my (
+  $cloud_spec_json, $task_definition_arn, $overrides_json,
+  $poll_interval, $output_file,
+);
+
+GetOptions(
+  'cloud-spec-json=s' => \$cloud_spec_json,
+  'task-definition-arn=s' => \$task_definition_arn,
+  'service-overrides-json=s' => \$overrides_json,
+  'poll-interval=i' => \$poll_interval,
+  'output-file=s' => \$output_file,
+)
+  or die "Error in command line arguments\n";
+
+die "Output file parameter is missing\n" unless length $output_file > 1;
+
+$poll_interval //= 10;
+
+say "Task definition ARN: $task_definition_arn";
+say "Cloud spec: $cloud_spec_json";
+say "ECS service overrides JSON: $overrides_json";
+say "Poll interval (seconds): $poll_interval";
+
+# Overrides are optional
+my $overrides = decode_json($overrides_json // '{}');
+
+my $service_arn = Mast::AWS::ECS::Service::create_or_update_service(
+  environment => "placeholder",
+  cloud_spec_json => $cloud_spec_json,
+  task_definition_arn => $task_definition_arn,
+  overrides => $overrides,
+  poll_interval => $poll_interval,
+);
+
+open my $fh, ">", $output_file or die "Cannot open $output_file for writing: $!";
+say $fh qq|service_arn=$service_arn|;
+close $fh;
