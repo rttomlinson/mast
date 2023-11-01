@@ -7,6 +7,8 @@ no warnings 'uninitialized';
 use Carp;
 use JSON::PP;
 
+# need to create and pass logger for xray tracing
+
 sub handle {
     my ($payload, $context) = @_;
     my $step_name = $payload->{step_name};

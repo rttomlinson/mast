@@ -13,7 +13,7 @@ my ($cloud_spec_url, $github_token, $docker_username, $docker_password, $output_
 my @auth_tokens;
 
 GetOptions(
-  'service-spec-url=s' => \$cloud_spec_url,
+  'cloud-spec-url=s' => \$cloud_spec_url,
   'github-token=s' => \$github_token,
   'docker-username=s' => \$docker_username,
   'docker-password=s' => \$docker_password,

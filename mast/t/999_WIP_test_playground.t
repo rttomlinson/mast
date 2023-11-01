@@ -62,7 +62,7 @@ sub reverse_normalize_value {
 # # Generate invalid service specs and see if any pass
 
 # my $cloud_spec_json_gen = Gen {
-#     my $cloud_spec_from = eval read_file 't/data/want/service-spec-template.pm';
+#     my $cloud_spec_from = eval read_file 't/data/want/cloud-spec-template.pm';
 
 #     # always skip the top level
 #     foreach my $key (sort(keys %{$cloud_spec_from})) {
@@ -76,7 +76,7 @@ sub reverse_normalize_value {
 # randomly drop an env value
 
 # use Data::Dumper;
-# my $cloud_spec_from = eval read_file 't/data/want/service-spec-template.pm';
+# my $cloud_spec_from = eval read_file 't/data/want/cloud-spec-template.pm';
 # # always skip the top level
 # foreach my $key (sort(keys %{$cloud_spec_from})) {
 #     $cloud_spec_from->{$key} = reverse_normalize_value($cloud_spec_from->{$key});

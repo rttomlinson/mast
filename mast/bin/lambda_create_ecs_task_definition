@@ -13,7 +13,7 @@ my ($cloud_spec_json, $cloud_spec_url, $output_file);
 
 GetOptions(
   'cloud-spec-json=s' => \$cloud_spec_json,
-  'service-spec-url=s' => \$cloud_spec_url,
+  'cloud-spec-url=s' => \$cloud_spec_url,
   'output-file=s' => \$output_file,
 )
   or die "Error in command line arguments\n";

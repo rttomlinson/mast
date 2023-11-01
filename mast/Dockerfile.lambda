@@ -61,5 +61,5 @@ RUN cpanm -v --no-wget $BUILD_OPTIONS /tmp/source \
 
 WORKDIR /
 
-# COPY handler.pl /var/task/
-# CMD [ "handler.handle" ]
+COPY handler.pl /var/task/
+CMD [ "handler.handle" ]
