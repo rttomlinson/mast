@@ -51,3 +51,5 @@ if you pass, "second" as your environment, the value at 'hello' will be collapse
 }
 
 perl Makefile.PL && make test && make manifest && make disttest && make dist && make realclean && mv Mast-1.00.tar.gz ~/Downloads/
+
+AWS_LAMBDA_REQUEST_ID=hellothere perl -Imast/lib mast/bin/validate_cloud_spec --context standby --cloud-spec-json "$(cat /Users/rtomlinson/Documents/rttomlinson/mast/mast/t/data/spec/bar-baz.json)" --context prestaging

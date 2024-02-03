@@ -5,6 +5,14 @@ use v5.030;
 use warnings;
 no warnings 'uninitialized', 'unopened';
 
+####
+## LOGGING CONFIG START
+####
+use Mast::CustomLogger qw(lambda_say lambda_confess lambda_die);
+####
+## LOGGING CONFIG END
+####
+
 use Carp 'confess';
 
 use parent 'Mast::Deploy::Base';
@@ -18,7 +26,7 @@ sub create_task_definition {
   my ($spec,) = @$self{'spec'};
   my $spec_url = $params{cloud_spec_url};
 
-  confess "Cloud spec URL is required" unless length $spec_url > 1;
+  lambda_confess "Cloud spec URL is required" unless length $spec_url > 1;
 
   my $task_def = $spec->ecs->{taskDefinition};
   my $family = $task_def->{family} || $spec->ecs->{service}->{name};
@@ -36,14 +44,12 @@ sub create_task_definition {
     volumes => $task_def->{volumes},
     aws => $self->aws,
   );
-
-  say "Creating ECS task definition in family $family...";
+  lambda_say("Creating ECS task definition in family $family...");
 
   my $task_definition_arn = $task_def_obj->create(
     cloud_spec_url => $spec_url
   );
-  
-  say "Successfully created task definition with ARN: $task_definition_arn";
+  lambda_say("Successfully created task definition with ARN: $task_definition_arn");
 
   return $task_definition_arn;
 }
@@ -58,11 +64,11 @@ sub delete_task_definition {
     aws => $self->aws,
   );
 
-  say "Deleting ECS task definition with ARN $arn...";
+  lambda_say("Deleting ECS task definition with ARN $arn...");
 
   $task_def->remove;
 
-  say "Successfully deleted task definition with ARN $arn";
+  lambda_say("Successfully deleted task definition with ARN $arn");
 }
 
 1;

@@ -4,6 +4,14 @@ $| = 1;
 use v5.030;
 use warnings;
 
+####
+## LOGGING CONFIG START
+####
+use Mast::CustomLogger qw(lambda_say lambda_confess lambda_die);
+####
+## LOGGING CONFIG END
+####
+use Data::Dumper;
 use JSON::PP;
 use Getopt::Long;
 use Mast::Deploy::Step;
@@ -16,10 +24,10 @@ GetOptions(
   'cloud-spec-json=s' => \$cloud_spec_json,
   'output-file=s' => \$output_file,
 )
-  or die "Error in command line arguments\n";
+  or lambda_die("Error in command line arguments\n");
 
-say "Contexts: @contexts";
-say "Cloud spec: $cloud_spec_json";
+lambda_say("Contexts: @contexts\n");
+lambda_say("Cloud spec: $cloud_spec_json\n");
 
 my $actualized_spec = validate_cloud_spec(
   contexts => \@contexts,
@@ -28,8 +36,11 @@ my $actualized_spec = validate_cloud_spec(
 
 # Output is optional
 if ($output_file) {
-  open my $fh, ">", $output_file or die "Cannot open $output_file for writing: $!\n";
+  open my $fh, ">", $output_file or lambda_die("Cannot open $output_file for writing: $!\n");
+  lambda_say("Writing to $output_file");
+  
   my $json_encoded_cloud_spec = encode_json $actualized_spec->cloud_spec;
+  say Dumper($json_encoded_cloud_spec);
   say $fh qq|cloud_spec_json=$json_encoded_cloud_spec|;
   close $fh;
 }

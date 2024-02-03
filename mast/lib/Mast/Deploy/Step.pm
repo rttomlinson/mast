@@ -5,6 +5,15 @@ use warnings;
 no warnings 'uninitialized';
 use Carp 'confess';
 use Exporter 'import';
+
+####
+## LOGGING CONFIG START
+####
+use Mast::CustomLogger qw(lambda_say lambda_confess lambda_die);
+####
+## LOGGING CONFIG END
+####
+
 use JSON::PP;
 use Scalar::Util 'looks_like_number';
 
@@ -139,7 +148,7 @@ sub check_ecs_service_rolling_deploy_readiness {
     my ($cloud_spec_json) = @params{qw(contexts cloud_spec_json)};
 
     # confess "contexts not found. this is required for this workflow." unless defined $contexts;
-    confess "cloud_spec not found. this is required for this workflow." unless defined $cloud_spec_json;
+    lambda_confess "cloud_spec not found. this is required for this workflow." unless defined $cloud_spec_json;
 
     my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
@@ -155,11 +164,11 @@ sub check_ecs_service_rolling_deploy_readiness {
     my @keys = keys %potential_errors;
     if(scalar(@keys) > 0){
     # inform user of potential errors then exit
-        say "We found some potential errors for this type of workflow.";
+        lambda_say "We found some potential errors for this type of workflow.";
         for(@keys){
-            say "Potential error with: $_. Condition found is: $potential_errors{$_}.";
+            lambda_say "Potential error with: $_. Condition found is: $potential_errors{$_}.";
         }
-        confess "throwing error in check_ecs_service_rolling_deploy_readiness";
+        lambda_confess "throwing error in check_ecs_service_rolling_deploy_readiness";
     }
 }
 
@@ -170,8 +179,8 @@ sub check_blue_green_readiness {
         = @params{qw(contexts cloud_spec_json current_active_cloud_spec_json)};
 
     $contexts //= [];
-    confess "cloud_spec not found. this is required for this workflow." unless defined $cloud_spec_json;
-    confess "current_active_cloud_spec_json not found. this is required for this workflow." unless defined $current_active_cloud_spec_json;
+    lambda_confess "cloud_spec not found. this is required for this workflow." unless defined $cloud_spec_json;
+    lambda_confess "current_active_cloud_spec_json not found. this is required for this workflow." unless defined $current_active_cloud_spec_json;
 
     my $cloud_spec = Mast::Cloud::Spec->new(
         contexts => [],
@@ -189,11 +198,11 @@ sub check_blue_green_readiness {
     my @keys = keys %potential_errors;
     if(scalar(@keys) > 0){
     # inform user of potential errors then exit
-        say "We found some potential errors for this type of workflow.";
+        lambda_say "We found some potential errors for this type of workflow.";
         for(@keys){
-            say "Potential error with: $_. Condition found is: $potential_errors{$_}.";
+            lambda_say "Potential error with: $_. Condition found is: $potential_errors{$_}.";
         }
-        confess "throwing error in check_blue_green_readiness";
+        lambda_confess "throwing error in check_blue_green_readiness";
     }
 }
 
@@ -217,9 +226,9 @@ sub check_if_service_and_target_groups_already_exist {
     if (scalar(keys %$errors) > 0){
     # inform user of potential errors then exit
         for (keys %$errors){
-            say "Potential error with: $_. Condition found is: $errors->{$_}.";
+            lambda_say "Potential error with: $_. Condition found is: $errors->{$_}.";
         }
-        die "Spec condition violations found, exiting with an error.\n";
+        lambda_die "Spec condition violations found, exiting with an error.\n";
     }
 
     return $output;
@@ -468,11 +477,11 @@ sub register_service_as_scalable_target_and_attach_scaling_policy {
     my $code = $deploy_step->register_service_as_scalable_target_and_attach_scaling_policy;
     if(defined $code){
         if($code =~ /scalable target config not found/) {
-            say "scalable target config not found. continuing."
+            lambda_say "scalable target config not found. continuing."
         } elsif($code =~ /scaling policy config not found/) {
-            say "scaling policy config not found. continuing."
+            lambda_say "scaling policy config not found. continuing."
         } else {
-            confess "Error message: $code.";
+            lambda_confess "Error message: $code.";
         }
     }
 }
@@ -551,7 +560,7 @@ sub deregister_service_as_scalable_target_and_delete_scaling_policy {
 
     my $code = $deploy_step->deregister_service_as_scalable_target_and_delete_scaling_policy;
     if(defined $code){
-        confess "Error message: $code.";
+        lambda_confess "Error message: $code.";
     }
 }
 
@@ -561,7 +570,7 @@ sub delete_ecs_service {
     my ($contexts, $cloud_spec_json, $poll_interval)
         = delete @params{qw(contexts cloud_spec_json poll_interval)};
 
-    confess "service spec not found. this is required for this step."
+    lambda_confess "service spec not found. this is required for this step."
         unless defined $cloud_spec_json and $cloud_spec_json ne '';
 
     my $cloud_spec = Mast::Cloud::Spec->new(
@@ -590,7 +599,7 @@ sub run_test {
 
     my $test = $cloud_spec->tests->{$test_name};
 
-    confess "Cannot find test definition for $test_name"
+    lambda_confess "Cannot find test definition for $test_name"
         unless $test;
     
     my $ecs_task = $test->{ecsTask};
@@ -615,7 +624,7 @@ sub run_ecs_task {
 
     my $task_spec = $cloud_spec->ecs->{tasks}->{$task_name};
 
-    confess "Cannot find ECS task specification for $task_name"
+    lambda_confess "Cannot find ECS task specification for $task_name"
         unless $task_spec;
     
     return execute_ecs_task(
@@ -631,7 +640,7 @@ sub execute_ecs_task {
     my ($aws_region, $ecs_task, $poll_interval)
         = @params{qw(aws_region ecs_task poll_interval)};
 
-    say "Creating ECS task definition...";
+    lambda_say "Creating ECS task definition...";
 
     my $task_def = Mast::AWS::ECS::TaskDefinition->new(
         aws_region => $aws_region,
@@ -641,7 +650,7 @@ sub execute_ecs_task {
     
     my $task_def_arn = $task_def->create;
 
-    say "Successfully created ECS task definition with ARN $task_def_arn";
+    lambda_say "Successfully created ECS task definition with ARN $task_def_arn";
 
     my $task_executor = Mast::AWS::ECS::Task->new(
         aws_region => $aws_region,
@@ -653,23 +662,23 @@ sub execute_ecs_task {
         network_configuration => $ecs_task->{networkConfiguration},
     );
 
-    $task_executor->execute(sub { say @_ });
-    $task_executor->watch_logs(sub { say @_ });
+    $task_executor->execute(sub { lambda_say @_ });
+    $task_executor->watch_logs(sub { lambda_say @_ });
 
-    say "All ECS tasks has stopped, deregistering ECS task definition with ARN $task_def_arn";
+    lambda_say "All ECS tasks has stopped, deregistering ECS task definition with ARN $task_def_arn";
 
     $task_def->remove;
 
-    say "Successfully deregistered ECS task definition";
+    lambda_say "Successfully deregistered ECS task definition";
 
-    $task_executor->print_container_exit_codes(sub { say @_ });
+    $task_executor->print_container_exit_codes(sub { lambda_say @_ });
 
     my $worst = $task_executor->get_container_with_highest_exit_code;
 
     if ($worst) {
         my $exit_code = $worst->{exitCode};
 
-        say "Essential container $worst->{name} in task id $worst->{taskId} " .
+        lambda_say "Essential container $worst->{name} in task id $worst->{taskId} " .
             "exited with code $exit_code, using this as overall test suite exit code.";
 
         # If something went wrong and there is no defined exit code
@@ -679,7 +688,7 @@ sub execute_ecs_task {
     else {
         # In case there is an error and we couldn't find any exit codes,
         # this would definitely need attention so let's exit with an error.
-        confess "Could not find exit code for any essential containers!";
+        lambda_confess "Could not find exit code for any essential containers!";
     }
 }
 

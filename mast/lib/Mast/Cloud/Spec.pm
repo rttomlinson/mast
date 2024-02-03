@@ -11,6 +11,14 @@ use JSON::PP;
 
 our @EXPORT_OK = qw(collapser);
 
+####
+## LOGGING CONFIG START
+####
+use Mast::CustomLogger qw(lambda_say lambda_confess lambda_die);
+####
+## LOGGING CONFIG END
+####
+
 sub new {
   my ($class, %arg) = @_;
 
@@ -22,15 +30,12 @@ sub new {
 
   my $parsed_spec = eval { decode_json $spec_text };
 
-  confess "Cannot parse cloud_spec: $@"
+  lambda_confess "Cannot parse cloud_spec: $@"
     if $@ and not $parsed_spec;
 
   my $version = delete $parsed_spec->{version};
   
   $contexts //= [];
-  confess "Cannot parse cloud_spec: $@"
-    if $@ and not $parsed_spec;
-
 
   if (not defined $version) {
     warn "No version property found in the spec document, assuming prehistoric v0\n";
@@ -94,7 +99,7 @@ sub collapse_value {
     return { map { $_ => collapse_value($context, $value->{$_}) } keys %$value };
   }
 
-  confess "Something unexpected happened?";
+  lambda_confess "Something unexpected happened?";
 }
 
 sub bool_str {

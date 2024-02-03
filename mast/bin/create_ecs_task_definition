@@ -5,6 +5,14 @@ use v5.030;
 use warnings;
 no warnings 'uninitialized';
 
+####
+## LOGGING CONFIG START
+####
+use Mast::CustomLogger qw(lambda_say lambda_confess lambda_die);
+####
+## LOGGING CONFIG END
+####
+
 use Getopt::Long;
 use JSON::PP;
 use Mast::Deploy::Step;
@@ -16,12 +24,12 @@ GetOptions(
   'cloud-spec-url=s' => \$cloud_spec_url,
   'output-file=s' => \$output_file,
 )
-  or die "Error in command line arguments\n";
+  or lambda_die "Error in command line arguments\n";
 
-die "Output file parameter is missing\n" unless length $output_file > 1;
+lambda_die "Output file parameter is missing\n" unless length $output_file > 1;
 
-say "Cloud spec URL: $cloud_spec_url";
-say "Cloud spec: $cloud_spec_json";
+lambda_say "Cloud spec URL: $cloud_spec_url";
+lambda_say "Cloud spec: $cloud_spec_json";
 
 
 my $task_definition_arn = create_ecs_task_definition(
@@ -30,7 +38,7 @@ my $task_definition_arn = create_ecs_task_definition(
   cloud_spec_url => $cloud_spec_url,
 );
 
-open my $fh, ">", $output_file or die "Cannot open $output_file for writing: $!";
+open my $fh, ">", $output_file or lambda_die "Cannot open $output_file for writing: $!";
 # say $fh qq|export task_definition_arn='$task_definition_arn'|;
 say $fh qq|task_definition_arn=$task_definition_arn|;
 

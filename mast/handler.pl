@@ -4,16 +4,35 @@ use strictures 2;
 use warnings;
 no warnings 'uninitialized';
 
+$| = 1;
 use Carp;
 use JSON::PP;
 
-# need to create and pass logger for xray tracing
-
 sub handle {
     my ($payload, $context) = @_;
+    
     my $step_name = $payload->{step_name};
     my @mast_args = keys %{$payload};
 
+    ####
+    ## LOGGING CONFIG END
+    ####
+    my $aws_request_id = $context->aws_request_id;
+
+    # This is relevant to perl command because it looks for this value. This feels really bad, but maybe there's a way to make it better?
+    # Some kind of interface for the logging or something
+    $ENV{AWS_LAMBDA_REQUEST_ID} = $aws_request_id if defined $aws_request_id;
+    use Mast::CustomLogger qw(lambda_say lambda_confess lambda_die);
+    # The identifier of the invocation request.
+    ####
+    ## LOGGING CONFIG START
+    ####
+    # my $printer = sub { lambda_say "mast-lambda (handler.handle), RequestId: $aws_request_id, ", join "", @_ };
+    # lambda_say "trying to get trace id";
+    # lambda_say $ENV{_X_AMZN_TRACE_ID};
+    # my $aws_lambda_runtime_api = $ENV{AWS_LAMBDA_RUNTIME_API};
+    # my $contents = get("http://${aws_lambda_runtime_api}/2018-06-01/runtime/invocation/next");
+    # say Dumper($contents);
     # my $output_key = $payload->{output_key};
     # if (not defined $output_key) {
     #     # Result scope is used to name the output values without overriding existing global state
@@ -24,10 +43,7 @@ sub handle {
     
     @mast_args = grep(!/step_name/, @mast_args); # need to hardcode this
 
-    # my $global_state = $payload->{global_state};
-    # @mast_args = grep(!/global_state/, @mast_args) if defined $global_state; # need to hardcode this
-    
-    confess "step_name not provided. exiting" unless defined $step_name;
+    lambda_confess "step_name not provided. exiting" unless defined $step_name;
     my $script_location = "/opt/bin/$step_name"; # don't know how to not hardcode this
 
     my @p_args = ($script_location,);
@@ -47,10 +63,11 @@ sub handle {
             push(@p_args, @arg_pair);
         }
     }
+    
+    # my $trace_id = $context->{'trace_id'};
 
-    say @p_args;
     system("perl", @p_args) == 0
-        or die "system perl @p_args failed: $?";
+        or lambda_die "system perl @p_args failed: $?";
     # system("perl", "/opt/bin/$step_name", "--environment", "$environment", "--cloud-spec-json" $cloud_spec_json,); 
     # my $files = `perl /opt/bin/validate_cloud_spec --environment $val --cloud-spec-json "{}"`;
     # say $files;
@@ -59,7 +76,7 @@ sub handle {
     # if output file exists, read from output file and populate the return payload
     my %result_output;
     my $file = $payload->{output_file};
-    open my $info, $file or die "Could not open $file: $!";
+    open my $info, $file or lambda_die "Could not open $file: $!";
     # my $decoded_json = decode_json($global_state);
     while( my $line = <$info>)  {
         chomp $line; 
@@ -67,10 +84,10 @@ sub handle {
         my $key = $spl[0];
         my $value = $spl[1];
         $result_output{$key} = $value;
-        # $decoded_json->{$key} = $value;
 
     }
     close $info;
     return \%result_output;
 }
+
 1;

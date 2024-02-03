@@ -4,6 +4,7 @@ use strictures 2;
 use warnings;
 no warnings 'uninitialized';
 
+$| = 1;
 use Carp;
 use JSON::PP;
 
