@@ -147,10 +147,19 @@ sub delete_ecs_service {
 
   say "Preparing to delete ECS service $service_name...";
 
-  # Cannot use delete keyword
-  $service->remove(sub { say @_ }, %params);
+  say "Checking if ECS service $service_name exists...";
 
-  say "Successfully deleted ECS service $service_name.";
+  my $exists = !!$service->describe;
+
+  if (not $exists) {
+    say "ECS service with name $service_name does not exist. Nothing to do. Continuing";
+  } else {
+    # Cannot use delete keyword
+    $service->remove(sub { say @_ }, %params);
+
+    say "Successfully deleted ECS service $service_name.";
+  }
+  
 }
 
 # We'll be doing both here since this should always happen together
