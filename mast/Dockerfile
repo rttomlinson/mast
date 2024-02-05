@@ -1,6 +1,7 @@
 ARG REPO_PREFIX
+# FROM ${REPO_PREFIX}alpine:latest
 
-FROM ${REPO_PREFIX}alpine:latest
+FROM alpine:latest
 
 # wget is broken in alpine
 RUN apk add --no-cache aws-cli yq jq curl gcc make perl libc-dev perl-dev \
