@@ -37,6 +37,7 @@ sub new {
 sub region { shift->{aws_region} }
 
 my %ecs_actors = (
+    'list-services' => \&ecs_list_services,
     'describe-services' => \&ecs_describe_services,
     'create-service' => \&ecs_create_service,
     'update-service' => \&ecs_update_service,
@@ -52,11 +53,18 @@ my %ecs_actors = (
     'tag-resource' => \&ecs_tag_resource,
 );
 
+sub ecs_list_services {
+  my ($self, $args, %additional_params) = @_;
+
+  return clone $self->{aws_state}->{services_data}->{services};
+}
+
 sub ecs_describe_services {
   my ($self, $args, %additional_params) = @_;
-  say $self->{aws_state}->{service};
   if($self->{aws_state}->{service} eq $args->{services}->[0]){
-    my $service = $self->{aws_state}->{services_data}->{services}->[0];
+    my @services = @{$self->{aws_state}{services_data}{services}};
+    my ($service) = grep { $_->{serviceName} eq $args->{services}->[0] } @services;
+    # my $service = $self->{aws_state}->{services_data}->{services}->[0];
 
     if ($service->{_mock_counter}-- == 0) {
       if ($service->{_mock_state} eq 'deployment') {
@@ -67,7 +75,9 @@ sub ecs_describe_services {
       }
     }
 
-    return clone $self->{aws_state}->{services_data};
+    return clone {'services' => [$service]};
+
+    # return clone $self->{aws_state}->{services_data};
   } else {
     return undef;
   }
@@ -76,12 +86,13 @@ sub ecs_create_service {
   my ($self, $args, %additional_params) = @_;
   say $args->{'service-name'};
   $self->{aws_state}{service} = $args->{'service-name'};
-  $self->{aws_state}{services_data} = {
-      "services" => 
-      [{
+
+  if(exists $self->{aws_state}{services_data}{services}) {
+    push(@{$self->{aws_state}{services_data}{services}}, {
         _mock_counter => -1,
         "taskDefinition" => "arn:aws:ecs:us-west-2:123456789012:task-definition/amazon-ecs-sample:1",
         "serviceArn" => "arn:aws:ecs:us-west-2:123456789012:service/my-http-service",
+        "serviceName" => $args->{'service-name'},
         "runningCount" => 0,
         "desiredCount" => 0,
         "events" => [
@@ -93,8 +104,29 @@ sub ecs_create_service {
             rolloutState => 'COMPLETED',
         }],
         "status" => "HELLO"
-      }]
+      });
+  } else {
+      $self->{aws_state}{services_data} = {
+        "services" => 
+          [{
+            _mock_counter => -1,
+            "taskDefinition" => "arn:aws:ecs:us-west-2:123456789012:task-definition/amazon-ecs-sample:1",
+            "serviceArn" => "arn:aws:ecs:us-west-2:123456789012:service/my-http-service",
+            "serviceName" => $args->{'service-name'},
+            "runningCount" => 0,
+            "desiredCount" => 0,
+            "events" => [
+              {"message" => "has reached a steady state"}
+            ],
+            deployments => [{
+                id => 'ecs-svc/foo',
+                status => 'PRIMARY',
+                rolloutState => 'COMPLETED',
+            }],
+            "status" => "HELLO"
+          }]
     };
+  }
 
   return clone $self->{aws_state}{services_data};
 }
@@ -125,8 +157,10 @@ sub ecs_update_service {
 sub ecs_delete_service {
   my ($self, $args, %additional_params) = @_;
 
-  $self->{aws_state}{services_data}{services}->[0]{status} = "INACTIVE";
+  my @services = @{$self->{aws_state}{services_data}{services}};
+  my ($first) = grep { $_->{serviceName} eq $args->{service} } @services;
 
+  $first->{status} = "INACTIVE";
   return;
 }
 sub ecs_deregister_task_definition {
