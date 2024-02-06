@@ -1,0 +1,34 @@
+#!/usr/bin/perl
+
+$| = 1;
+use v5.030;
+use warnings;
+
+use Getopt::Long;
+use Scalar::Util 'looks_like_number';
+use Mast::Deploy::Step;
+
+my ($cloud_spec_json, $current_active_cloud_spec_json,
+    $poll_interval);
+
+GetOptions(
+  'cloud-spec-json=s' => \$cloud_spec_json,
+  'current-active-cloud-spec-json=s' => \$current_active_cloud_spec_json,
+  'poll-interval=i' => \$poll_interval,
+)
+  or die "Error in command line arguments\n";
+
+$poll_interval //= 10;
+
+undef $current_active_cloud_spec_json if $current_active_cloud_spec_json eq '';
+
+say "Cloud spec: $cloud_spec_json";
+say "Current active service spec: " . ($current_active_cloud_spec_json // 'undefined');
+say "Poll interval (seconds): $poll_interval";
+
+scale_ecs_service_down_for_deletion(
+  environment => "placeholder",
+  cloud_spec_json => $cloud_spec_json,
+  current_active_cloud_spec_json => $current_active_cloud_spec_json,
+  poll_interval => $poll_interval,
+);

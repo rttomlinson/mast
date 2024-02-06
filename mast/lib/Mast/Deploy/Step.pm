@@ -431,6 +431,58 @@ sub scale_ecs_service {
     return $service_arn;
 }
 
+sub scale_ecs_service_down_for_deletion {
+    my %params = @_;
+
+    my ($contexts, $cloud_spec_json,
+        $current_active_cloud_spec_json, $poll_interval)
+        = @params{qw(contexts cloud_spec_json
+                     current_active_cloud_spec_json poll_interval)};
+    
+    $poll_interval = $poll_interval // 10;
+
+    undef $current_active_cloud_spec_json if $current_active_cloud_spec_json eq '';
+
+    my $cloud_spec = Mast::Cloud::Spec->new(
+        contexts => [],
+        cloud_spec_json => $cloud_spec_json,
+    );
+
+    my $current_active_service = undef;
+
+    if(defined $current_active_cloud_spec_json){
+        my $current_active_cloud_spec = Mast::Cloud::Spec->new(
+            contexts => [],
+            cloud_spec_json => $current_active_cloud_spec_json,
+        );
+
+        $current_active_service = Mast::Deploy::Service->new(
+            cloud_spec => $current_active_cloud_spec,
+            poll_interval => $poll_interval,
+        );
+    }
+
+    my $deploy_step = Mast::Deploy::Service->new(
+        cloud_spec => $cloud_spec,
+        poll_interval => $poll_interval,
+    );
+
+    # If service does not exist OR is INACTIVE, we consider it already deleted and a success of this specific function
+    # This returns undefined if service does not exist or is INACTIVE
+    my $ecs_service = $deploy_step->get_service_object->describe;
+    if(defined $ecs_service) {
+        my $desired_count = 0;
+        # TODO - we pass in the current active service until we have the execution spec
+        # The execution spec will just contain the number of tasks. It will resolve 'match'
+        my $service_arn = $deploy_step->scale_task_count($desired_count, $current_active_service);
+
+        return $service_arn;
+    } else {
+        # Do nothing
+        return;
+    }
+}
+
 sub verify_service {
     my %params = @_;
     my ($contexts, $cloud_spec_json) = @params{'contexts', 'cloud_spec_json'};
