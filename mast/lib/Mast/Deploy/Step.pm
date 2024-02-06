@@ -35,6 +35,7 @@ our @EXPORT = qw(
     create_or_update_ecs_service
     tag_ecs_service
     scale_ecs_service
+    scale_ecs_service_down_for_deletion
     verify_service
     register_service_as_scalable_target_and_attach_scaling_policy
     tag_elb_target_groups
